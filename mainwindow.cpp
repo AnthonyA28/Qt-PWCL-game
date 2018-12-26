@@ -61,26 +61,33 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // add two new graphs and set their look:
     ui->plot->addGraph();
-    ui->plot->addGraph();
-    ui->plot->addGraph();
-    ui->plot->addGraph();
-    ui->plot->graph(0)->setPen(QPen(QColor("purple"))); // line color for the first graph
     ui->plot->graph(0)->setName("Percent Heater on");
-    ui->plot->graph(1)->setPen(QPen(Qt::green));
+    ui->plot->graph(0)->setPen(QPen(QColor("purple"))); // line color for the first graph
+    ui->plot->graph(0)->setValueAxis(ui->plot->yAxis2);
+
+    ui->plot->addGraph();
     ui->plot->graph(1)->setName("Temperature");
-    ui->plot->graph(2)->setPen(QPen(Qt::blue));
+    ui->plot->graph(1)->setPen(QPen(Qt::green));
+
+    ui->plot->addGraph();
     ui->plot->graph(2)->setName("Temperature Filtered");
+    ui->plot->graph(2)->setPen(QPen(Qt::blue));
+
     // the set point must have a specil scatterstyle so it doesnt connect the lines
-    ui->plot->graph(3)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, QColor("orange"), 5));
-    ui->plot->graph(3)->setPen(QPen(Qt::white)); // set point
+    ui->plot->addGraph();
     ui->plot->graph(3)->setName("Set Point");
-//    ui->plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables); // dont want user interactions
+    ui->plot->graph(3)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, QColor("orange"), 5));
+    ui->plot->graph(3)->setPen(QPen(Qt::white)); // so we dont see the line connecting the dots
+
+    /*
+     * If we want the user to be able to interact with graph
+     */
+    //    ui->plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables); // dont want user interactions
 
     ui->plot->xAxis2->setVisible(true);  // show x ticks at top
-    ui->plot->xAxis2->setVisible(false);
-    ui->plot->yAxis2->setVisible(true);
-    ui->plot->yAxis2->setTickLabels(true);
-    ui->plot->graph(0)->setValueAxis(ui->plot->yAxis2);
+    ui->plot->xAxis2->setVisible(false); // dont show labels at top
+    ui->plot->yAxis2->setVisible(true);  // right y axis labels
+    ui->plot->yAxis2->setTickLabels(true);  // show y ticks on right side for % on
 
     ui->plot->yAxis2->setLabel("Heater [%]");
     ui->plot->yAxis->setLabel("Temperature [C]");
@@ -88,9 +95,8 @@ MainWindow::MainWindow(QWidget *parent) :
     // setup the legend
     ui->plot->legend->setVisible(true);
     ui->plot->legend->setFont(QFont("Helvetica", 8));
-    ui->plot->legend->setRowSpacing(-3);
+    ui->plot->legend->setRowSpacing(-4);  // less space between words
     ui->plot->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignLeft|Qt::AlignTop);
-
 
 
 
@@ -158,15 +164,10 @@ void MainWindow::showRequest(const QString &req)
          * update the graph
          *
          */
-        this->params.time.append(inputs[i_time]);
-        this->params.pOn.append(inputs[i_percentOn]);
-        this->params.temp.append(inputs[i_temperature]);
-        this->params.tempFilt.append(inputs[i_tempFiltered]);
-        this->params.setPoint.append(inputs[i_setPoint]);
-        ui->plot->graph(0)->setData(params.time, params.pOn);
-        ui->plot->graph(1)->setData(params.time, params.temp);
-        ui->plot->graph(2)->setData(params.time, params.tempFilt);
-        ui->plot->graph(3)->setData(params.time, params.setPoint);
+        ui->plot->graph(0)->addData(inputs[i_time], inputs[i_percentOn]);
+        ui->plot->graph(1)->addData(inputs[i_time], inputs[i_temperature]);
+        ui->plot->graph(2)->addData(inputs[i_time], inputs[i_tempFiltered]);
+        ui->plot->graph(3)->addData(inputs[i_time], inputs[i_setPoint]);
         ui->plot->replot( QCustomPlot::rpQueuedReplot );
         ui->plot->rescaleAxes(); // should be in a button or somethng
 

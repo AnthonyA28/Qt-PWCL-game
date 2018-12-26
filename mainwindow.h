@@ -58,16 +58,6 @@ private:
     QXlsx::Document xldoc;
     QFile csvdoc;
 
-    struct PARAMS
-    {
-        QVector<double> time;
-        QVector<double> pOn;
-        QVector<double> temp;
-        QVector<double> tempFilt;
-        QVector<double> setPoint;
-    };
-    PARAMS params;
-
     /*  Some values shared between the arduino code and the this program */
     // specific for the game
     const unsigned int i_percentOn     = 0;       // for input & output
