@@ -65,12 +65,33 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->plot->addGraph();
     ui->plot->addGraph();
     ui->plot->graph(0)->setPen(QPen(QColor("purple"))); // line color for the first graph
+    ui->plot->graph(0)->setName("Percent Heater on");
     ui->plot->graph(1)->setPen(QPen(Qt::green));
+    ui->plot->graph(1)->setName("Temperature");
     ui->plot->graph(2)->setPen(QPen(Qt::blue));
+    ui->plot->graph(2)->setName("Temperature Filtered");
     // the set point must have a specil scatterstyle so it doesnt connect the lines
     ui->plot->graph(3)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, QColor("orange"), 5));
     ui->plot->graph(3)->setPen(QPen(Qt::white)); // set point
-    ui->plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
+    ui->plot->graph(3)->setName("Set Point");
+//    ui->plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables); // dont want user interactions
+
+    ui->plot->xAxis2->setVisible(true);  // show x ticks at top
+    ui->plot->xAxis2->setVisible(false);
+    ui->plot->yAxis2->setVisible(true);
+    ui->plot->yAxis2->setTickLabels(true);
+    ui->plot->graph(0)->setValueAxis(ui->plot->yAxis2);
+
+    ui->plot->yAxis2->setLabel("Heater [%]");
+    ui->plot->yAxis->setLabel("Temperature [C]");
+
+    // setup the legend
+    ui->plot->legend->setVisible(true);
+    ui->plot->legend->setFont(QFont("Helvetica", 8));
+    ui->plot->legend->setRowSpacing(-3);
+    ui->plot->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignLeft|Qt::AlignTop);
+
+
 
 
 }
