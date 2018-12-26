@@ -60,10 +60,11 @@ MainWindow::MainWindow(QWidget *parent) :
      */
 
     // add two new graphs and set their look:
+    // the set point must have a specil scatterstyle so it doesnt connect the lines
     ui->plot->addGraph();
-    ui->plot->graph(0)->setName("Percent Heater on");
-    ui->plot->graph(0)->setPen(QPen(QColor("purple"))); // line color for the first graph
-    ui->plot->graph(0)->setValueAxis(ui->plot->yAxis2);
+    ui->plot->graph(0)->setName("Set Point");
+    ui->plot->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, QColor("orange"), 5));
+    ui->plot->graph(0)->setPen(QPen(Qt::white)); // so we dont see the line connecting the dots
 
     ui->plot->addGraph();
     ui->plot->graph(1)->setName("Temperature");
@@ -73,11 +74,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->plot->graph(2)->setName("Temperature Filtered");
     ui->plot->graph(2)->setPen(QPen(Qt::blue));
 
-    // the set point must have a specil scatterstyle so it doesnt connect the lines
     ui->plot->addGraph();
-    ui->plot->graph(3)->setName("Set Point");
-    ui->plot->graph(3)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, QColor("orange"), 5));
-    ui->plot->graph(3)->setPen(QPen(Qt::white)); // so we dont see the line connecting the dots
+    ui->plot->graph(3)->setName("Percent Heater on");
+    ui->plot->graph(3)->setPen(QPen(QColor("purple"))); // line color for the first graph
+    ui->plot->graph(3)->setValueAxis(ui->plot->yAxis2);
 
     /*
      * If we want the user to be able to interact with graph
@@ -91,14 +91,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->plot->yAxis2->setLabel("Heater [%]");
     ui->plot->yAxis->setLabel("Temperature [C]");
+    ui->plot->xAxis->setLabel("Time [min]");
 
     // setup the legend
     ui->plot->legend->setVisible(true);
     ui->plot->legend->setFont(QFont("Helvetica", 8));
     ui->plot->legend->setRowSpacing(-4);  // less space between words
     ui->plot->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignLeft|Qt::AlignTop);
-
-
 
 }
 
@@ -164,10 +163,10 @@ void MainWindow::showRequest(const QString &req)
          * update the graph
          *
          */
-        ui->plot->graph(0)->addData(inputs[i_time], inputs[i_percentOn]);
+        ui->plot->graph(0)->addData(inputs[i_time], inputs[i_setPoint]);
         ui->plot->graph(1)->addData(inputs[i_time], inputs[i_temperature]);
         ui->plot->graph(2)->addData(inputs[i_time], inputs[i_tempFiltered]);
-        ui->plot->graph(3)->addData(inputs[i_time], inputs[i_setPoint]);
+        ui->plot->graph(3)->addData(inputs[i_time], inputs[i_percentOn]);
         ui->plot->replot( QCustomPlot::rpQueuedReplot );
         ui->plot->rescaleAxes(); // should be in a button or somethng
 
