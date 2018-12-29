@@ -263,28 +263,32 @@ void MainWindow::on_setButton_clicked()
     {   // we are connected so we can send the data in the textbox
         bool isNumerical = false;
         QString pOnStr = ui->percentOnInput->text();   // get string from perent on textbox
-        float pOn = pOnStr.toFloat(&isNumerical);    // convert to a float value
-        if( !isNumerical )
+        pOnStr.remove(' ');
+        if( !pOnStr.isEmpty() )
         {
-            // the user input is not a valid number
-            QMessageBox msgBox;
-            msgBox.setText("The percent on value is not numerical");
-            msgBox.exec();
-            ui->percentOnInput->clear();
-        }
-        else if ( pOn > 100 || pOn < 0 ) // ensure the not out of range of a reasonable percent on value
-        {
-            QMessageBox msgBox;
-            msgBox.setText("The percent on value is out of range");
-            msgBox.exec();
-            ui->percentOnInput->clear();
-        }
-        else
-        {
-            // its okay
-            pOnStr.prepend("[");
-            pOnStr.append("]");
-            emit this->response(pOnStr);
+            float pOn = pOnStr.toFloat(&isNumerical);    // convert to a float value
+            if( !isNumerical )
+            {
+                // the user input is not a valid number
+                QMessageBox msgBox;
+                msgBox.setText("The percent on value is not numerical");
+                msgBox.exec();
+                ui->percentOnInput->clear();
+            }
+            else if ( pOn > 100 || pOn < 0 ) // ensure the not out of range of a reasonable percent on value
+            {
+                QMessageBox msgBox;
+                msgBox.setText("The percent on value is out of range");
+                msgBox.exec();
+                ui->percentOnInput->clear();
+            }
+            else
+            {
+                // its okay
+                pOnStr.prepend("[");
+                pOnStr.append("]");
+                emit this->response(pOnStr);
+            }
         }
     }
     else
