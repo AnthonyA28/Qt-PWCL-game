@@ -12,6 +12,7 @@ MainWindow::MainWindow(QWidget *parent) :
     this->inputs = std::vector<float>(this->numInputs); // initialize the input vector to hold the input values from the port
 
     connect(&port, &PORT::request, this, &MainWindow::showRequest);     // when the port recieves data it will emit PORT::request thus calling MainWindow::showRequest
+    connect(&port, &PORT::disconnected, this, &MainWindow::disonnectedPopUpWindow);
     connect(this, &MainWindow::response, &port, &PORT::L_processResponse);  // whn the set button is clicked, it will emit MainWindow::response thus calling PORT::L_processResponse
 
     ui->outputTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);   // have the table resize with the window
@@ -310,3 +311,16 @@ void MainWindow::on_setButton_clicked()
         emit this->on_portComboBox_activated(0);
     }
 }
+
+bool MainWindow::disonnectedPopUpWindow()
+{
+//    qDebug() << "(disconnected popup window )\n";
+    QMessageBox disconnectPopupWindow;
+    disconnectPopupWindow.setWindowTitle("Error");
+    disconnectPopupWindow.setText("Fatal Error, device disconnected\n"
+                                  "Application will close."
+                                   );
+    disconnectPopupWindow.exec();
+    this->close();
+}
+
