@@ -314,13 +314,11 @@ void MainWindow::on_setButton_clicked()
 
 bool MainWindow::disonnectedPopUpWindow()
 {
-//    qDebug() << "(disconnected popup window )\n";
-    QMessageBox disconnectPopupWindow;
-    disconnectPopupWindow.setWindowTitle("Error");
-    disconnectPopupWindow.setText("Fatal Error, device disconnected\n"
-                                  "Application will close."
-                                   );
-    disconnectPopupWindow.exec();
-    this->close();
+    qDebug() << "(disconnected popup window )\n";
+    QMessageBox::critical(this,
+                          "Error",
+                          "Fatal Error, device disconnected.\n"
+                          "Close and restart the application to continue.\n",
+                          QMessageBox::Ok
+                          );
 }
-
