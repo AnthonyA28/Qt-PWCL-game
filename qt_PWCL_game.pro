@@ -8,7 +8,7 @@ QT       += core gui serialport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
-TARGET = qt_game_with_plot
+TARGET = qt_game
 TEMPLATE = app
 CONFIG += static
 # The following define makes your compiler emit warnings if you use
