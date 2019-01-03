@@ -19,13 +19,11 @@ Uses the [ QCustomPlot ](http://www.qcustomplot.com/) library for live graphing.
    
    Qt version 5 or greator is required. Tested in Qt 5.9.2.
 
-  * Clone the repository. 
-  * Open the *qt_PWCL_game.pro* file with Qt creator. 
+ * Clone the repository. 
+ * Open the *qt_PWCL_game.pro* file with Qt creator. 
 
 --------------------
 
-
-
-* Todo 
-	* Place title in the window 
-	* change "average error" to "average squared error"
+## Todo 
+* Place title in the window 
+* change "average error" to "average squared error"
