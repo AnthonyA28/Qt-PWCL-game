@@ -22,39 +22,52 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
+/*
+*   Called when the application is first opened.
+*   Configures main window, log files, and more..
+*/
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
 
     ui->setupUi(this);
-    this->timerId = startTimer(1000);  // timer is used to repeatedly check for port data until we are connected
-    this->inputs = std::vector<float>(this->numInputs); // initialize the input vector to hold the input values from the port
+    // timer is used to repeatedly check for port data until we are connected
+    this->timerId = startTimer(1000);
+    // initialize the input vector to hold the input values from the port
+    this->inputs = std::vector<float>(this->numInputs); 
 
+    /*
+    *  Connect functions from the PORT class to functions declared in the MainWIndow class and vice versa. 
+    */
     connect(&port, &PORT::request, this, &MainWindow::showRequest);     // when the port recieves data it will emit PORT::request thus calling MainWindow::showRequest
     connect(&port, &PORT::disconnected, this, &MainWindow::disonnectedPopUpWindow);
     connect(this, &MainWindow::response, &port, &PORT::L_processResponse);  // whn the set button is clicked, it will emit MainWindow::response thus calling PORT::L_processResponse
 
     ui->outputTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);   // have the table resize with the window
 
-    // need to ensure the files are opened in the correct directory
+
+    /*
+    *  Prepare data logging files. One in excel format named this->excelFileName 
+    *  and two in csv file format named this->csvFileName, another csv file 
+    *  with titled with the current date will copy the contents of this->csvFileName.
+    */
+    // Move to the directy above the executable
     QString execDir = QCoreApplication::applicationDirPath();
     QDir::setCurrent(execDir);
     QDir newDir = QDir::current();
-    newDir.cdUp();  // go one directory up so we dont place our output next to the dependencies
+    newDir.cdUp();
     QDir::setCurrent(newDir.path());
 
     this->excelFileName = "excelFile.xlsx";
     this->csvFileName   = "data.csv";
 
-    // ensure the excel file does not already exit, if it does we will delete it
-    if( QFile::exists(this->excelFileName) )
-    {
+    if (QFile::exists(this->excelFileName)) {
         QFile oldFile(this->excelFileName);
         oldFile.remove();
     }
 
-    /* give the excel file column headers */
+    // give the excel file column headers
     this->xldoc.write( 1 , 1, "Time");
     this->xldoc.write( 1 , 2, "Percent On");
     this->xldoc.write( 1 , 3, "Temperature");
@@ -63,25 +76,19 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // open the csv file and give it a header
     this->csvdoc.setFileName(this->csvFileName);
-    if( this->csvdoc.open(QIODevice::Truncate | QIODevice::WriteOnly | QIODevice::Text) )
-    {
+    if (this->csvdoc.open(QIODevice::Truncate | QIODevice::WriteOnly | QIODevice::Text)) {
         QTextStream stream(&this->csvdoc);
         stream << "Time, perent on, Temp, Temp filtered, Set Point\n";
     }
-    else
-    {
-        /* todo: figure out how to handle this #p2 */
+    else{
         qDebug() << " Failed to open data.csv \n";
     }
 
 
     /*
-     * Lets setup the plot
-     *
-     */
-
-    // add two new graphs and set their look:
-    // the set point must have a specil scatterstyle so it doesnt connect the lines
+    * Set up the live plot on the GUI/
+    * The set point must have a special scatterstyle so it doesnt connect the lines
+    */
     ui->plot->addGraph();
     ui->plot->graph(0)->setName("Set Point");
     ui->plot->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, QColor("orange"), 5));
@@ -99,11 +106,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->plot->graph(3)->setName("Percent Heater on");
     ui->plot->graph(3)->setPen(QPen(QColor("purple"))); // line color for the first graph
     ui->plot->graph(3)->setValueAxis(ui->plot->yAxis2);
-
-    /*
-     * If we want the user to be able to interact with graph
-     */
-    //    ui->plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables); // dont want user interactions
 
     ui->plot->xAxis2->setVisible(true);  // show x ticks at top
     ui->plot->xAxis2->setVisible(false); // dont show labels at top
@@ -124,6 +126,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
 
+/**
+*   Called when the window is closed.
+*   Creates and saves a backup file of logged data. 
+*/
 MainWindow::~MainWindow()
 {
     if( this->port.L_isConnected())
@@ -145,18 +151,24 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+
+
+/**
+*   Called when data was read from the port. 
+*   Fills a new row in the output table. Updates the graph, and any parameters shown in the GUI.
+*/
 void MainWindow::showRequest(const QString &req)
 {
-    if(this->deserializeArray(req.toStdString().c_str(), this->numInputs, this->inputs))
-    {
+    if (this->deserializeArray(req.toStdString().c_str(), this->numInputs, this->inputs)) {
+        
+        /*
+        *  Update the output table with the last parameters read from the port.
+        */
         ui->outputTable->insertRow(ui->outputTable->rowCount()); // create a new row
 
-        // todo: fix the condition here inputs size is larger than the amount of columns
+        // todo: fix the condition here inputs size is larger than the amount of columns #p1
 
-        QString tmpStr;
-
-
-        /* add a string of each value into each column at the last row in the outputTable */
+        // add a string of each value into each column at the last row in the outputTable
         ui->outputTable->setItem(ui->outputTable->rowCount()-1, 0, new QTableWidgetItem(QString::number(inputs[i_time],'g',3)));
         ui->outputTable->setItem(ui->outputTable->rowCount()-1, 1, new QTableWidgetItem(QString::number(inputs[i_percentOn],'g',3)));
         ui->outputTable->setItem(ui->outputTable->rowCount()-1, 2, new QTableWidgetItem(QString::number(inputs[i_temperature],'g',3)));
@@ -164,7 +176,7 @@ void MainWindow::showRequest(const QString &req)
         ui->outputTable->setItem(ui->outputTable->rowCount()-1, 4, new QTableWidgetItem(QString::number(inputs[i_setPoint],'g',3)));
         ui->outputTable->scrollToBottom();   // scroll to the bottom to ensure the last value is visible
 
-        /* add each value into the excel file  */
+        // add each value into the excel file 
         this->xldoc.write(ui->outputTable->rowCount(), 1, inputs[i_time]);
         this->xldoc.write(ui->outputTable->rowCount(), 2, inputs[i_percentOn]);
         this->xldoc.write(ui->outputTable->rowCount(), 3, inputs[i_temperature]);
@@ -172,8 +184,10 @@ void MainWindow::showRequest(const QString &req)
         this->xldoc.write(ui->outputTable->rowCount(), 5, inputs[i_setPoint]);
         this->xldoc.saveAs(this->excelFileName); // save the doc in case we crash
 
-        // for writing to csv file
-        char file_output_buffer[200]   = ""; // create a string to be sent to the file
+        /*
+        *  Update the csv file with the last data read from the port 
+        */
+        char file_output_buffer[200]   = "";
         snprintf(file_output_buffer, sizeof(file_output_buffer),"%6.2f,%6.2f,%6.2f,%6.2f,%6.2f\n",
             inputs[i_time], inputs[i_percentOn], inputs[i_temperature], inputs[i_tempFiltered], inputs[i_setPoint]);
         QTextStream stream(&this->csvdoc);
@@ -181,9 +195,9 @@ void MainWindow::showRequest(const QString &req)
         stream.flush();
 
 
-
-        // Show the current values from the port in the current parameters area
-
+        /* 
+        *  Show the current values from the port in the current parameters area 
+        */
         float show_error_and_inputVar_time = 18.0; // time after which we want to show average error and input variance
         float show_score_time = 29.0; // time after which we show the score
         if( inputs[i_time] > show_error_and_inputVar_time ) // only show the input variance after input exclusion time
@@ -192,7 +206,7 @@ void MainWindow::showRequest(const QString &req)
             ui->inputVarLabel->setNum(inputs[i_input_var]);
         }
         if ( inputs[i_time] > show_score_time )
-            ui->scoreLabel->setNum(inputs[i_score]); // todo: should only show this after
+            ui->scoreLabel->setNum(inputs[i_score]);
 
 
         /*
@@ -203,7 +217,8 @@ void MainWindow::showRequest(const QString &req)
          * 1.5  >= score > 0.8  Control Student.
          * 0.8  >= score        Control Master.
         */
-
+        // check the score to determine what the 'rankString' should be 
+        // todo: simplify this #p3
         if (inputs[i_time] > 29.0) {
             char rankString[200];
             snprintf(rankString, sizeof(rankString), "Professional Crash test dummy\n");
@@ -222,9 +237,8 @@ void MainWindow::showRequest(const QString &req)
 
 
         /*
-         * update the graph
-         *
-         */
+        *  Place the latest values in the graph  
+        */
         ui->plot->graph(0)->addData(inputs[i_time], inputs[i_setPoint]);
         ui->plot->graph(1)->addData(inputs[i_time], inputs[i_temperature]);
         ui->plot->graph(2)->addData(inputs[i_time], inputs[i_tempFiltered]);
@@ -240,6 +254,99 @@ void MainWindow::showRequest(const QString &req)
     }
 }
 
+
+
+/**
+*   Called when the user clicks the set button.
+*   creates a string from the values in the textboxes and sends it to the port.
+*/
+void MainWindow::on_setButton_clicked()
+{
+    if (port.L_isConnected()) {   // we are connected so we can send the data in the textbox
+        bool isNumerical = false;
+        QString pOnStr = ui->percentOnInput->text();   // get string from perent on textbox
+        pOnStr.remove(' ');
+        if (!pOnStr.isEmpty()) {
+            float pOn = pOnStr.toFloat(&isNumerical);    // convert to a float value
+            if (!isNumerical) {
+                // the user input is not a valid number
+                QMessageBox msgBox;
+                msgBox.setText("The percent on value is not numerical");
+                msgBox.exec();
+                ui->percentOnInput->clear();
+            }
+            else if ( pOn > 100 || pOn < 0 ) { // ensure the not out of range of a reasonable percent on value
+                QMessageBox msgBox;
+                msgBox.setText("The percent on value is out of range");
+                msgBox.exec();
+                ui->percentOnInput->clear();
+            } else {
+                // its okay
+                pOnStr.prepend("[");
+                pOnStr.append("]");
+                emit this->response(pOnStr);  // call 'response' to send the string to the port 
+            }
+        }
+    } else {  
+        /*
+        *  if we arent connect then emit a signal as if the user clicked the first option in the combobox
+        *  and therefore a connection will be attempted. 
+        */ 
+        emit this->on_portComboBox_activated(0);
+    }
+}
+
+
+
+/**
+*   Called by the timer ever 250 ms, until the timer is killed.
+*   Checks if a connection is active, if no connection is active,
+*   search for available ports and open a connection. 
+*/
+void MainWindow::timerEvent(QTimerEvent *event)
+{
+    if (!port.L_isConnected()) {
+        QList<QSerialPortInfo> portList = QSerialPortInfo::availablePorts();
+        // todo: check what hapens if the socket changes. This may be an issue if we change the COM before establishing a connection  #p2
+        if( ui->portComboBox->count() != portList.size()) {
+            ui->portComboBox->clear();
+            for(int i = 0; i < portList.size(); i ++)
+            {
+               ui->portComboBox->addItem(portList.at(i).portName());
+            }
+        }
+    }
+    else {
+        killTimer(this->timerId); // no reason for the timer anymore
+        if( ui->setButton->text() != "Set")
+            ui->setButton->setText("Set");
+    }
+}
+
+
+
+/**
+*   called when the user pressed on the combobox
+*   connects to the port selected. 
+*/
+void MainWindow::on_portComboBox_activated(int index)
+{
+    if ( !port.L_isConnected() )
+    {  // the port is not conneted yet so we should connect
+        QList<QSerialPortInfo> portList = QSerialPortInfo::availablePorts();
+        if(portList.size() != 0)
+        {
+            port.openPort(portList.at(index));
+        }
+    }
+}
+
+
+
+/**
+*   Called after new data is recieved from the port to parse the string recieved. 
+*   fills 'output' of five 'output_size' with the vlues in 'input' string. 
+*/
 bool MainWindow::deserializeArray(const char* const input, unsigned int output_size,  std::vector<float> &output)
 {
     /*
@@ -294,87 +401,13 @@ bool MainWindow::deserializeArray(const char* const input, unsigned int output_s
 }
 
 
-void MainWindow::timerEvent(QTimerEvent *event)
-{
-    if( !port.L_isConnected() )
-    {
-        QList<QSerialPortInfo> portList = QSerialPortInfo::availablePorts();
-        if(  ui->portComboBox->count() != portList.size() )
-        {
-            ui->portComboBox->clear();
-            for(int i = 0; i < portList.size(); i ++)
-            {
-               ui->portComboBox->addItem(portList.at(i).portName());
-            }
-        }
-    }
-    else
-    {
-        killTimer(this->timerId); // no reason for the timer anymore
-        if( ui->setButton->text() != "Set")
-        {
-            ui->setButton->setText("Set");
-        }
-    }
 
-}
-
-void MainWindow::on_portComboBox_activated(int index)
-{
-    if ( !port.L_isConnected() )
-    {  // the port is not conneted yet so we should connect
-        QList<QSerialPortInfo> portList = QSerialPortInfo::availablePorts();
-        if(portList.size() != 0)
-        {
-            port.openPort(portList.at(index));
-        }
-    }
-}
-
-void MainWindow::on_setButton_clicked()
-{
-    // send data to port now
-    if ( port.L_isConnected() )
-    {   // we are connected so we can send the data in the textbox
-        bool isNumerical = false;
-        QString pOnStr = ui->percentOnInput->text();   // get string from perent on textbox
-        pOnStr.remove(' ');
-        if( !pOnStr.isEmpty() )
-        {
-            float pOn = pOnStr.toFloat(&isNumerical);    // convert to a float value
-            if( !isNumerical )
-            {
-                // the user input is not a valid number
-                QMessageBox msgBox;
-                msgBox.setText("The percent on value is not numerical");
-                msgBox.exec();
-                ui->percentOnInput->clear();
-            }
-            else if ( pOn > 100 || pOn < 0 ) // ensure the not out of range of a reasonable percent on value
-            {
-                QMessageBox msgBox;
-                msgBox.setText("The percent on value is out of range");
-                msgBox.exec();
-                ui->percentOnInput->clear();
-            }
-            else
-            {
-                // its okay
-                pOnStr.prepend("[");
-                pOnStr.append("]");
-                emit this->response(pOnStr);
-            }
-        }
-    }
-    else
-    {  // as if the user clicked the first option in the combobox
-        emit this->on_portComboBox_activated(0);
-    }
-}
-
+/**
+*   Called when the port is disconnected 
+*   Tells the user to manually restart the application 
+*/
 bool MainWindow::disonnectedPopUpWindow()
 {
-    qDebug() << "(disconnected popup window )\n";
     QMessageBox::critical(this,
                           "Error",
                           "Fatal Error, device disconnected.\n"

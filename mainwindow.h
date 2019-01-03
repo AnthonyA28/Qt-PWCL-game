@@ -55,21 +55,26 @@ private slots:
     void on_setButton_clicked();
 
 private:
+
     Ui::MainWindow *ui;
-    bool deserializeArray(const char* const input, unsigned int output_size, std::vector<float>& output);
+    
     int timerId;
     void timerEvent(QTimerEvent *event);
     PORT port;
+    
     QString csvFileName;
     QString excelFileName;
     QXlsx::Document xldoc;
     QFile csvdoc;
 
-    /*  Some values shared between the arduino code and the this program */
-    // specific for the game
-    const unsigned int i_percentOn     = 0;       // for input & output
-    const unsigned int i_setPoint      = 1;       // for input & output
-    const unsigned int i_fanSpeed      = 2;       // for input & output
+    bool deserializeArray(const char* const input, unsigned int output_size, std::vector<float>& output);
+    std::vector<float> inputs;  // Holds values read from the port ordered below 
+    /*
+    * Assign the index in which these values will exist in the 'inputs' and 'outputs' arrays
+    */
+    const unsigned int i_percentOn     = 0;      // for input & output
+    const unsigned int i_setPoint      = 1;      // for input & output
+    const unsigned int i_fanSpeed      = 2;      // for input & output
     const unsigned int i_temperature   = 3;      // for input
     const unsigned int i_tempFiltered  = 4;      // for input
     const unsigned int i_time          = 5;      // for input
@@ -77,7 +82,6 @@ private:
     const unsigned int i_avg_err       = 7;      // for input
     const unsigned int i_score         = 8;      // for input
     const unsigned int numInputs       = 9;
-    std::vector<float> inputs;
 };
 
 #endif // MAINWINDOW_H
