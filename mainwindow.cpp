@@ -35,10 +35,10 @@ MainWindow::MainWindow(QWidget *parent) :
     // timer is used to repeatedly check for port data until we are connected
     this->timerId = startTimer(1000);
     // initialize the input vector to hold the input values from the port
-    this->inputs = std::vector<float>(this->numInputs); 
+    this->inputs = std::vector<float>(this->numInputs);
 
     /*
-    *  Connect functions from the PORT class to functions declared in the MainWIndow class and vice versa. 
+    *  Connect functions from the PORT class to functions declared in the MainWIndow class and vice versa.
     */
     connect(&port, &PORT::request, this, &MainWindow::showRequest);     // when the port recieves data it will emit PORT::request thus calling MainWindow::showRequest
     connect(&port, &PORT::disconnected, this, &MainWindow::disonnectedPopUpWindow);
@@ -48,8 +48,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     /*
-    *  Prepare data logging files. One in excel format named this->excelFileName 
-    *  and two in csv file format named this->csvFileName, another csv file 
+    *  Prepare data logging files. One in excel format named this->excelFileName
+    *  and two in csv file format named this->csvFileName, another csv file
     *  with titled with the current date will copy the contents of this->csvFileName.
     */
     // Move to the directy above the executable
@@ -128,7 +128,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 /**
 *   Called when the window is closed.
-*   Creates and saves a backup file of logged data. 
+*   Creates and saves a backup file of logged data.
 */
 MainWindow::~MainWindow()
 {
@@ -154,19 +154,17 @@ MainWindow::~MainWindow()
 
 
 /**
-*   Called when data was read from the port. 
+*   Called when data was read from the port.
 *   Fills a new row in the output table. Updates the graph, and any parameters shown in the GUI.
 */
 void MainWindow::showRequest(const QString &req)
 {
     if (this->deserializeArray(req.toStdString().c_str(), this->numInputs, this->inputs)) {
-        
+
         /*
         *  Update the output table with the last parameters read from the port.
         */
         ui->outputTable->insertRow(ui->outputTable->rowCount()); // create a new row
-
-        // todo: fix the condition here inputs size is larger than the amount of columns #p1
 
         // add a string of each value into each column at the last row in the outputTable
         ui->outputTable->setItem(ui->outputTable->rowCount()-1, 0, new QTableWidgetItem(QString::number(inputs[i_time],'g',3)));
@@ -176,7 +174,7 @@ void MainWindow::showRequest(const QString &req)
         ui->outputTable->setItem(ui->outputTable->rowCount()-1, 4, new QTableWidgetItem(QString::number(inputs[i_setPoint],'g',3)));
         ui->outputTable->scrollToBottom();   // scroll to the bottom to ensure the last value is visible
 
-        // add each value into the excel file 
+        // add each value into the excel file
         this->xldoc.write(ui->outputTable->rowCount(), 1, inputs[i_time]);
         this->xldoc.write(ui->outputTable->rowCount(), 2, inputs[i_percentOn]);
         this->xldoc.write(ui->outputTable->rowCount(), 3, inputs[i_temperature]);
@@ -185,7 +183,7 @@ void MainWindow::showRequest(const QString &req)
         this->xldoc.saveAs(this->excelFileName); // save the doc in case we crash
 
         /*
-        *  Update the csv file with the last data read from the port 
+        *  Update the csv file with the last data read from the port
         */
         char file_output_buffer[200]   = "";
         snprintf(file_output_buffer, sizeof(file_output_buffer),"%6.2f,%6.2f,%6.2f,%6.2f,%6.2f\n",
@@ -195,8 +193,8 @@ void MainWindow::showRequest(const QString &req)
         stream.flush();
 
 
-        /* 
-        *  Show the current values from the port in the current parameters area 
+        /*
+        *  Show the current values from the port in the current parameters area
         */
         float show_error_and_inputVar_time = 18.0; // time after which we want to show average error and input variance
         float show_score_time = 29.0; // time after which we show the score
@@ -217,7 +215,7 @@ void MainWindow::showRequest(const QString &req)
          * 1.5  >= score > 0.8  Control Student.
          * 0.8  >= score        Control Master.
         */
-        // check the score to determine what the 'rankString' should be 
+        // check the score to determine what the 'rankString' should be
         // todo: simplify this #p3
         if (inputs[i_time] > 29.0) {
             char rankString[200];
@@ -237,7 +235,7 @@ void MainWindow::showRequest(const QString &req)
 
 
         /*
-        *  Place the latest values in the graph  
+        *  Place the latest values in the graph
         */
         ui->plot->graph(0)->addData(inputs[i_time], inputs[i_setPoint]);
         ui->plot->graph(1)->addData(inputs[i_time], inputs[i_temperature]);
@@ -284,14 +282,14 @@ void MainWindow::on_setButton_clicked()
                 // its okay
                 pOnStr.prepend("[");
                 pOnStr.append("]");
-                emit this->response(pOnStr);  // call 'response' to send the string to the port 
+                emit this->response(pOnStr);  // call 'response' to send the string to the port
             }
         }
-    } else {  
+    } else {
         /*
         *  if we arent connect then emit a signal as if the user clicked the first option in the combobox
-        *  and therefore a connection will be attempted. 
-        */ 
+        *  and therefore a connection will be attempted.
+        */
         emit this->on_portComboBox_activated(0);
     }
 }
@@ -301,7 +299,7 @@ void MainWindow::on_setButton_clicked()
 /**
 *   Called by the timer ever 250 ms, until the timer is killed.
 *   Checks if a connection is active, if no connection is active,
-*   search for available ports and open a connection. 
+*   search for available ports and open a connection.
 */
 void MainWindow::timerEvent(QTimerEvent *event)
 {
@@ -327,7 +325,7 @@ void MainWindow::timerEvent(QTimerEvent *event)
 
 /**
 *   called when the user pressed on the combobox
-*   connects to the port selected. 
+*   connects to the port selected.
 */
 void MainWindow::on_portComboBox_activated(int index)
 {
@@ -344,8 +342,8 @@ void MainWindow::on_portComboBox_activated(int index)
 
 
 /**
-*   Called after new data is recieved from the port to parse the string recieved. 
-*   fills 'output' of five 'output_size' with the vlues in 'input' string. 
+*   Called after new data is recieved from the port to parse the string recieved.
+*   fills 'output' of five 'output_size' with the vlues in 'input' string.
 */
 bool MainWindow::deserializeArray(const char* const input, unsigned int output_size,  std::vector<float> &output)
 {
@@ -403,8 +401,8 @@ bool MainWindow::deserializeArray(const char* const input, unsigned int output_s
 
 
 /**
-*   Called when the port is disconnected 
-*   Tells the user to manually restart the application 
+*   Called when the port is disconnected
+*   Tells the user to manually restart the application
 */
 bool MainWindow::disonnectedPopUpWindow()
 {

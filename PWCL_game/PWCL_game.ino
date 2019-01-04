@@ -1,37 +1,37 @@
 //  DEDICATION
-//  To the memory of Dr. Leonard (Lenny) Bernstein, an inspiring chemical engineer, 
-//  climate scientist, and novelist, who provided tremendous guidance and resources 
+//  To the memory of Dr. Leonard (Lenny) Bernstein, an inspiring chemical engineer,
+//  climate scientist, and novelist, who provided tremendous guidance and resources
 //  to improve the educational experience of our students.
 
 
 //  OVERVIEW
 /*  WET PROCESS CONTROL LABORATORY ON EACH STUDENT'S DESK (OR FLOOR).
- *   
- *  Using the Arduino UNO microcontroller attached via the USB port to a laptop, 
- *  this software and associated hardware controls the temperature of a water-filled 
+ *
+ *  Using the Arduino UNO microcontroller attached via the USB port to a laptop,
+ *  this software and associated hardware controls the temperature of a water-filled
  *  cylindrical container with thin walls of high thermal conductivity (e.g., a
- *  soda can) by low frequency pulse width modulation (PWM) of a 125W beverage 
- *  heater (immersion coil).  This is done by turning on or off a relay.  For safety, 
- *  either a completely enclosed electromagnetic relay or an enclosed and 
- *  finger-protected solid state relay should be used.  In addition, two 5V fans 
- *  powered from the Arduino (peak draw current 180 mA each) are used to increase the 
- *  maximum cooling rate, the fraction of time the heater is on at safe temperatures, 
- *  and to provide disturbances. The fan velocity can be changed by using 
- *  Arduino-provided low frequency PWM of a logic level MOSFET which controls both 
- *  fans.  The temperature is measured using a DS18B20 waterproof sensor. 
- *  
+ *  soda can) by low frequency pulse width modulation (PWM) of a 125W beverage
+ *  heater (immersion coil).  This is done by turning on or off a relay.  For safety,
+ *  either a completely enclosed electromagnetic relay or an enclosed and
+ *  finger-protected solid state relay should be used.  In addition, two 5V fans
+ *  powered from the Arduino (peak draw current 180 mA each) are used to increase the
+ *  maximum cooling rate, the fraction of time the heater is on at safe temperatures,
+ *  and to provide disturbances. The fan velocity can be changed by using
+ *  Arduino-provided low frequency PWM of a logic level MOSFET which controls both
+ *  fans.  The temperature is measured using a DS18B20 waterproof sensor.
+ *
  *  Authored by Spyros A Svoronos, Department of Chemical Engineering, University of
  *  Florida, Dec 2016 - Mar 2017
- *  Adapted by Anthony Arrowood, Jun 2018 - Aug 2018 
- *  
+ *  Adapted by Anthony Arrowood, Jun 2018 - Aug 2018
+ *
  */
 
-//  This version of the software is for a student competition in manually controlling 
+//  This version of the software is for a student competition in manually controlling
 //  the temperature. It is inspired by a similar competition via a CSTR simulation
 //  authored by Wilbur Woo.
- 
 
-bool autoEnabled = false; 
+
+bool autoEnabled = false;
 
 
 // //PRELIMINARIES
@@ -42,7 +42,7 @@ bool autoEnabled = false;
 #define txPin 7   //connect to white wire of CP210 or to yellow wire of FTDI
 
 //Relay pin
-#define relayPin 5 
+#define relayPin 5
 
 //Logic level MOSFET pin
 #define fetPin 9  //PWM pin 9 or 10 since we might change frequency and need millis()
@@ -70,12 +70,12 @@ unsigned long tRelayStart;  //The next statements declare other global variables
 unsigned long startConversionTime;
 unsigned long tLoopStart;
 bool stopTempHigh = 0;   //flag ending the run due to high temperature
-bool stopTimeEnd = 0;   //flag ending the test when time is up 
+bool stopTimeEnd = 0;   //flag ending the test when time is up
 float elapsedTime; //min, used for test
 
 float changeTime[] = {0., 12., 21., 30., 30., 30.}; //min, used for test
 float Tsp[] = {25., 36., 40., 40., 40., 40.}; //deg C, used for test, set points UNTIL each changeTime, 2nd value is 1st implemented
-byte fanSetting[] = {255, 255, 255, 0, 255, 255}; // controls fan speed, used for test, values UNTIL each changeTime 
+byte fanSetting[] = {255, 255, 255, 0, 255, 255}; // controls fan speed, used for test, values UNTIL each changeTime
 
 float Tmax = 70;   //used for test
 float Jysum = 0;      //Needed for the y-performance measure, sum of squared errors
@@ -94,7 +94,7 @@ float TsetPoint = Tsp[1];  // deg C
 int tdelay = 3; //delay in msec used with serial interaction commands
 int tGETSET = 1000;  //delay before some GET and SET commands
 
-// defining some indices to be used for the input and output arrays 
+// defining some indices to be used for the input and output arrays
 const unsigned int i_percentOn    = 0;  //  for input and output
 const unsigned int i_setPoint     = 1;  //  for output
 const unsigned int i_fanSpeed     = 2;  //  for output
@@ -104,9 +104,9 @@ const unsigned int i_time         = 5; //   for output
 const unsigned int i_inputVar     = 6; //   for output
 const unsigned int i_avg_err      = 7; //   for output
 const unsigned int i_score        = 8; //   for output
-const unsigned int numInputs      = 1; 
-const unsigned int numOutputs     = 9; 
-// initialize the input and output arrays 
+const unsigned int numInputs      = 1;
+const unsigned int numOutputs     = 9;
+// initialize the input and output arrays
 const unsigned int buffersize = 300;
 char inputbuffer[buffersize];
 char outputbuffer[buffersize]; // its much better for the memory to be using a char* rather than a string
@@ -117,7 +117,7 @@ void serialize_array(float input[], char * output); // declare the function so i
 bool deserialize_array(const char * input, unsigned int output_size, float output[]); // declare the function so it can be placed under where it is used
 void check_input(); // declare the function so it can be placed under where it is used
 
-void setFanPwmFrequency(int pin, int divisor) {  
+void setFanPwmFrequency(int pin, int divisor) {
   //From http://playground.arduino.cc/Code/PwmFrequency?action=sourceblock&num=2
   byte mode;
   if(pin == 5 || pin == 6 || pin == 9 || pin == 10) {
@@ -157,7 +157,7 @@ void relayCare(void){         // Continues relay looping
     }
     else if (timeHere - tRelayStart < relayPeriod) {
       digitalWrite(relayPin, HIGH);
-    }    
+    }
     else{
       digitalWrite(relayPin, LOW);
       tRelayStart = timeHere;
@@ -177,7 +177,7 @@ void setup(void) {
   digitalWrite(relayPin, LOW); //start with relay off
   pinMode(fetPin, OUTPUT);
   setFanPwmFrequency(fetPin,1024);  //64 = default divisor (use 64,256,1024)
-  analogWrite(fetPin, fanSpeed);  //start fan 
+  analogWrite(fetPin, fanSpeed);  //start fan
   Serial.begin(9600);
   delay(tdelay);
   tRelayStart = millis(); //starting relay period
@@ -189,18 +189,18 @@ void loop(void) {  //MAIN CODE iterates indefinitely
 
   //SAMPLING PROCESS STARTS - RELAY MUST CONTINUE CYCLING
   tLoopStart = millis(); //not the same as sampling interval start due to delay
-  relayCare();   
-  
+  relayCare();
+
   //The following code calculates the temperature from one DS18B20 in deg Celsius
-  //It is adapted from http://bildr.org/2011/07/ds18b20-arduino/ 
-    
+  //It is adapted from http://bildr.org/2011/07/ds18b20-arduino/
+
   byte data[12];
-  byte addr[8]; 
+  byte addr[8];
   if ( !ds.search(addr)) {
        //no more sensors on chain, reset search
        ds.reset_search();
        // return -1000;
-  }  
+  }
   if ( OneWire::crc8( addr, 7) != addr[7]) {
        Serial.println(F("CRC is not valid!"));
        // return -1000;
@@ -212,25 +212,25 @@ void loop(void) {  //MAIN CODE iterates indefinitely
   ds.reset();
   ds.select(addr);
   ds.write(0x44); // start conversion, without parasite power on at the end
-  
+
   startConversionTime = millis();
   while(millis()- startConversionTime < probeTime)    //wait for probe to finish conversion
   {
-    relayCare();   
+    relayCare();
   }
 
   byte present = ds.reset();
-  ds.select(addr);    
+  ds.select(addr);
   ds.write(0xBE); // Read scratchpad
 
   relayCare();
-    
+
   for (int i = 0; i < 9; i++) { // we need 9 bytes
     data[i] = ds.read();
   }
 
-  relayCare();   
-  
+  relayCare();
+
   ds.reset_search();
   byte MSB = data[1];
   byte LSB = data[0];
@@ -247,7 +247,7 @@ void loop(void) {  //MAIN CODE iterates indefinitely
       TsetPoint = Tsp[i];
       fanSpeed = fanSetting[i];
     }
-  }    
+  }
   analogWrite(fetPin, fanSpeed);
 
   if (elapsedTime >= changeTime[5])
@@ -257,10 +257,10 @@ void loop(void) {  //MAIN CODE iterates indefinitely
   }
 
   relayCare();
-    
+
 
    error = TsetPoint - temperature;
-   
+
   //CALCULATIONS FOR THE SCORE FOLLOW
   if (elapsedTime > changeTime[1]) {   //average squared error is calculated after changeTime[1]
     Jysum += error * error;
@@ -270,7 +270,7 @@ void loop(void) {  //MAIN CODE iterates indefinitely
   }
   //Input Variance Calculations Using Algorithm in https://en.wikipedia.org/wiki/Standard_deviation
   for (int i = 2; i < 6; i++) { // we start with 2nd change response to allow everyone to start from the same point
-    if (elapsedTime > changeTime[i-1] + inputExclusionTime & elapsedTime <= changeTime[i]){  //for ith input variance 
+    if (elapsedTime > changeTime[i-1] + inputExclusionTime & elapsedTime <= changeTime[i]){  //for ith input variance
       nJu[i] ++;
       QQ[i] += (percentRelayOn-AA[i])*(percentRelayOn-AA[i])*(nJu[i]-1)/nJu[i];
       AA[i] += (percentRelayOn-AA[i])/ nJu[i];
@@ -281,15 +281,15 @@ void loop(void) {  //MAIN CODE iterates indefinitely
   float sumDenom = 0;
   for (int i = 2; i < 6; i++) {
     sumNum += nJu[i]*Jui[i];
-    sumDenom += nJu[i];   
+    sumDenom += nJu[i];
   }
   Ju = sumNum/sumDenom;
-  J = 0.65 * Jy + 0.35 * Ju; 
-  
-  //CONTROL LAW CALCULATIONS  
+  J = 0.65 * Jy + 0.35 * Ju;
+
+  //CONTROL LAW CALCULATIONS
   //The sampling interval actually ends when a new measurement is available
   //loopPeriod = samplingPeriod, but sampling interval lags behind
-  
+
   //Checking if Temp ok
   if (temperature > Tmax){    //if noisy use tmpFiltered
     stopTempHigh = 1;
@@ -311,12 +311,12 @@ void loop(void) {  //MAIN CODE iterates indefinitely
   /* fill the ouput char buffer with the contents of the output array */
   serialize_array(outputs, outputbuffer);
   Serial.println(outputbuffer); // send the output buffer to the port
-  
-  while ( millis() < tLoopStart + stepSize ){      
+
+  while ( millis() < tLoopStart + stepSize ){
     relayCare();
     check_input();
   }
-  percentRelayOn = inputs[i_percentOn]; // this is done at the end so the heating so any changes are in sync with the data logging. 
+  percentRelayOn = inputs[i_percentOn]; // this is done at the end so the heating so any changes are in sync with the data logging.
 }
 
 /**
@@ -331,7 +331,7 @@ void serialize_array(float input[], char * output)
   index++;
   for (unsigned int i = 0; i < numOutputs - 1; i++)
   {
-    dtostrf(input[i], 0, 4, tmp); // (val, minimum width, precision , str) 
+    dtostrf(input[i], 0, 4, tmp); // (val, minimum width, precision , str)
     tmp_size = strlen(tmp);
     memcpy(& output[index], tmp, tmp_size);
     index += tmp_size;
@@ -403,7 +403,7 @@ bool deserialize_array(const char* const input, unsigned int output_size,  float
         }
         while (*p != ',' && *p != ']' && *p)
             p++;
-        p++; 
+        p++;
    }
    p = input;
    return true;
@@ -411,7 +411,7 @@ bool deserialize_array(const char* const input, unsigned int output_size,  float
 
 
 /**
-  Checks the port for any incoming data. If new data has arrived, it will be used to set the current values. 
+  Checks the port for any incoming data. If new data has arrived, it will be used to set the current values.
 */
 void check_input()
 {
@@ -424,7 +424,7 @@ void check_input()
   {
     unsigned int i = 0;
     char c = '\0';
-    while (c != ']'){
+    while (c != ']'){   //todo:  change this to check for null and test it #p1
       // read until the first right bracket
       if (c == '!'){
         shutdown();
