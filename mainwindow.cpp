@@ -34,8 +34,14 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     // timer is used to repeatedly check for port data until we are connected
     this->timerId = startTimer(1000);
+    // indicates when we are connected to the port AND the correct arduino program is being run
+    this->validConnection = false;
     // initialize the input vector to hold the input values from the port
     this->inputs = std::vector<float>(this->numInputs);
+    // have the table resize with the window
+    ui->outputTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);   // have the table resize with the window
+    // disable any input into the the percent on textbox
+    ui->percentOnInput->setEnabled(false);
 
     /*
     *  Connect functions from the PORT class to functions declared in the MainWIndow class and vice versa.
@@ -44,7 +50,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&port, &PORT::disconnected, this, &MainWindow::disonnectedPopUpWindow);
     connect(this, &MainWindow::response, &port, &PORT::L_processResponse);  // whn the set button is clicked, it will emit MainWindow::response thus calling PORT::L_processResponse
 
-    ui->outputTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);   // have the table resize with the window
 
 
     /*
@@ -159,7 +164,18 @@ MainWindow::~MainWindow()
 */
 void MainWindow::showRequest(const QString &req)
 {
+
+    if (req.contains('!')) {
+        ui->emergencyMessageLabel->setText(req);
+        return;
+    }
+
     if (this->deserializeArray(req.toStdString().c_str(), this->numInputs, this->inputs)) {
+
+        if (!this->validConnection) {
+            this->validConnection = true;  // String was parsed therefore the correct arduino program is uploaded
+            ui->percentOnInput->setEnabled(true);
+        }
 
         /*
         *  Update the output table with the last parameters read from the port.
@@ -316,8 +332,7 @@ void MainWindow::timerEvent(QTimerEvent *event)
     }
     else {
         killTimer(this->timerId); // no reason for the timer anymore
-        if( ui->setButton->text() != "Set")
-            ui->setButton->setText("Set");
+        ui->setButton->setText("Set");
     }
 }
 
