@@ -175,6 +175,7 @@ void MainWindow::showRequest(const QString &req)
         if (!this->validConnection) {
             this->validConnection = true;  // String was parsed therefore the correct arduino program is uploaded
             ui->percentOnInput->setEnabled(true);
+            ui->emergencyMessageLabel->clear();
         }
 
         /*
@@ -265,6 +266,8 @@ void MainWindow::showRequest(const QString &req)
     else
     {
         qDebug() << "ERROR Failed to deserialize array \n";
+        if (!this->validConnection)
+            ui->emergencyMessageLabel->setText("Possible incorrect arduino program uploaded.");
     }
 }
 
