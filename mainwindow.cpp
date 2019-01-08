@@ -227,21 +227,21 @@ void MainWindow::showRequest(const QString &req)
 
         /*
          * After 29 minutes we show the score
-         * score > 10.0         professional crash test dummy.
-         * 10.0 >= score > 3.0  Accident waiting to happen.
-         * 3.0  >= score > 1.5  Proud owner of a learners permit.
-         * 1.5  >= score > 0.8  Control Student.
-         * 0.8  >= score        Control Master.
+         * score > 50         professional crash test dummy.
+         * 50 >= score > 20  Accident waiting to happen.
+         * 20  >= score > 16  Proud owner of a learners permit.
+         * 16  >= score > 13  Control Student.
+         * 13  >= score        Control Master.
         */
         // check the score to determine what the 'rankString' should be
         // todo: simplify this #p3
         if (inputs[i_time] > 29.0) {
             char rankString[200];
             snprintf(rankString, sizeof(rankString), "Professional Crash test dummy\n");
-            if (inputs[i_score] <= 10.0) {
-                if (inputs[i_score] <= 3.0) {
-                    if (inputs[i_score] <= 1.5) {
-                        if (inputs[i_score] <= 0.8) {
+            if (inputs[i_score] <= 50.0) {
+                if (inputs[i_score] <= 20.0) {
+                    if (inputs[i_score] <= 16.0) {
+                        if (inputs[i_score] <= 13.0) {
                                   snprintf(rankString, sizeof(rankString), "Control Master\n");
                         } else {  snprintf(rankString, sizeof(rankString), "Control Student\n") ; }
                     } else {      snprintf(rankString, sizeof(rankString), "Proud owner of a learners permit\n") ; }
