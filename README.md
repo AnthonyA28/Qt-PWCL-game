@@ -13,7 +13,7 @@ Uses the [ QCustomPlot ](http://www.qcustomplot.com/) library for live graphing.
 
 ## Installation
 
-  All releases are available in the qt_PC_gui_main repository.
+  All releases are available in the qt_PWCL-main repository.
 
 ## Building from source 
    
