@@ -214,19 +214,18 @@ void MainWindow::showRequest(const QString &req)
         /*
         *  Show the current values from the port in the current parameters area
         */
-        float show_error_and_inputVar_time = 18.0; // time after which we want to show average error and input variance
+        float show_error_time = 18.0; // time after which we want to show average error and input variance
         float show_score_time = 29.0; // time after which we show the score
-        if( inputs[i_time] > show_error_and_inputVar_time ) // only show the input variance after input exclusion time
-        {
+
+        if( inputs[i_time] > show_error_time ) // only show the input variance after input exclusion time
             ui->avgerrLabel->setNum(inputs[i_avg_err]);
-            ui->inputVarLabel->setNum(inputs[i_input_var]);
-        }
+
         if ( inputs[i_time] > show_score_time )
             ui->scoreLabel->setNum(inputs[i_score]);
 
 
         /*
-         * After 29 minutes we show the score
+         * After show_score_time minutes we show the score
          * score > 50         professional crash test dummy.
          * 50 >= score > 20  Accident waiting to happen.
          * 20  >= score > 16  Proud owner of a learners permit.
@@ -235,7 +234,7 @@ void MainWindow::showRequest(const QString &req)
         */
         // check the score to determine what the 'rankString' should be
         // todo: simplify this #p3
-        if (inputs[i_time] > 29.0) {
+        if (inputs[i_time] > show_score_time) {
             char rankString[200];
             snprintf(rankString, sizeof(rankString), "Professional Crash test dummy\n");
             if (inputs[i_score] <= 50.0) {
