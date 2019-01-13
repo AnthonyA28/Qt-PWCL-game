@@ -83,6 +83,10 @@ private:
     const unsigned int i_avg_err       = 7;      // for input
     const unsigned int i_score         = 8;      // for input
     const unsigned int numInputs       = 9;
+
+protected:
+    bool event(QEvent *event);
+
 };
 
 #endif // MAINWINDOW_H
