@@ -284,7 +284,9 @@ void loop(void) {  //MAIN CODE iterates indefinitely
     sumDenom += nJu[i];
   }
   Ju = sumNum/sumDenom;
-  J = 0.65 * Jy + 0.35 * Ju;
+  // J = 0.65 * Jy + 0.35 * Ju;
+  J = Jy; // the game does not consider the input variance
+
 
   //CONTROL LAW CALCULATIONS
   //The sampling interval actually ends when a new measurement is available
