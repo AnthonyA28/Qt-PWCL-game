@@ -169,6 +169,7 @@ void MainWindow::showRequest(const QString &req)
     if (req.contains('!')) {
         ui->emergencyMessageLabel->setText(req);
         if(req.contains("overheat")) {
+            ui->scoreLabel->setText("Score: " + QString::number(static_cast<double>(inputs[i_score]))); //show the score
             ui->scoreRankLabel->setText("Professional Crash Test Dummy!" );
         }
         return;
@@ -240,7 +241,7 @@ void MainWindow::showRequest(const QString &req)
         // todo: simplify this #p3
         double show_score_time = 29.0; // time after which we show the score
         if ( time > show_score_time) {
-            ui->scoreLabel->setText("Score" + QString::number(score));  // time to show the value of the score
+            ui->scoreLabel->setText("Score: " + QString::number(score));  // time to show the value of the score
             char rankString[200];
             snprintf(rankString, sizeof(rankString), "Accident waiting to happen\n");
             if ( score <= 20.0) {
