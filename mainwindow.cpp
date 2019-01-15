@@ -231,8 +231,7 @@ void MainWindow::showRequest(const QString &req)
 
         /*
          * After 29 minutes we show the score
-         * score > 50         professional crash test dummy.
-         * 50 >= score > 20  Accident waiting to happen.
+         * score > 20  Accident waiting to happen.
          * 20  >= score > 16  Proud owner of a learners permit.
          * 16  >= score > 13  Control Student.
          * 13  >= score        Control Master.
