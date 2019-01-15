@@ -168,6 +168,9 @@ void MainWindow::showRequest(const QString &req)
 
     if (req.contains('!')) {
         ui->emergencyMessageLabel->setText(req);
+        if(req.contains("overheat")) {
+            ui->scoreRankLabel->setText("Professional Crash Test Dummy!" );
+        }
         return;
     }
 
@@ -223,13 +226,7 @@ void MainWindow::showRequest(const QString &req)
         /*
         *  Show the current values from the port in the current parameters area
         */
-        double show_errortime = 18.0; // time after which we want to show average error and input variance
-        double show_score_time = 29.0; // time after which we show the score
-        if(  time > show_errortime )  // only show the input variance after input exclusion time
-            ui->avgerrLabel->setNum( avg_err);
-        if (  time > show_score_time )
-            ui->scoreLabel->setNum( score);
-
+        ui->avgerrLabel->setNum( avg_err);
 
         /*
          * After 29 minutes we show the score
@@ -241,17 +238,17 @@ void MainWindow::showRequest(const QString &req)
         */
         // check the score to determine what the 'rankString' should be
         // todo: simplify this #p3
-        if ( time > 29.0) {
+        double show_score_time = 29.0; // time after which we show the score
+        if ( time > show_score_time) {
+            ui->scoreLabel->setText("Score" + QString::number(score));  // time to show the value of the score
             char rankString[200];
-            snprintf(rankString, sizeof(rankString), "Professional Crash test dummy\n");
-            if ( score <= 50.0) {
-                if ( score <= 20.0) {
-                    if ( score <= 16.0) {
-                        if ( score <= 13.0) {
-                                  snprintf(rankString, sizeof(rankString), "Control Master\n");
-                        } else {  snprintf(rankString, sizeof(rankString), "Control Student\n") ; }
-                    } else {      snprintf(rankString, sizeof(rankString), "Proud owner of a learners permit\n") ; }
-                } else {          snprintf(rankString, sizeof(rankString), "Accident waiting to happen\n") ; }
+            snprintf(rankString, sizeof(rankString), "Accident waiting to happen\n");
+            if ( score <= 20.0) {
+                if ( score <= 16.0) {
+                    if ( score <= 13.0) {
+                              snprintf(rankString, sizeof(rankString), "Control Master\n");
+                    } else {  snprintf(rankString, sizeof(rankString), "Control Student\n") ; }
+                } else {      snprintf(rankString, sizeof(rankString), "Proud owner of a learners permit\n") ; }
             }
             qDebug() << "rank output string: " << rankString << "\n";
             ui->scoreRankLabel->setText(rankString);

@@ -77,11 +77,11 @@ float changeTime[] = {0., 12., 21., 30., 30., 30.}; //min, used for test
 float Tsp[] = {25., 36., 40., 40., 40., 40.}; //deg C, used for test, set points UNTIL each changeTime, 2nd value is 1st implemented
 byte fanSetting[] = {255, 255, 255, 0, 255, 255}; // controls fan speed, used for test, values UNTIL each changeTime
 
-float Tmax = 70;   //used for test
+float Tmax = 43;   //used for test maximum temperature until shutdown
 float Jysum = 0;      //Needed for the y-performance measure, sum of squared errors
 unsigned long nJy = 0;  //Needed for the y-performance measure, number of measurements
 float Jy; //Becomes the average squared error
-float inputExclusionTime = 5.0; //min, used for test, time after a change not used in the calulation of input variance
+float inputExclusionTime = 0.0; //min, used for game, no inputexclusion time
 int nJu[]   = {0, 0, 0, 0, 0, 0}; //Needed for the Jui performance measure, number of values after input exclusion time
 float AA[]  = {0., 0., 0., 0., 0., 0.}; //Needed for calculating the variance of u
 float QQ[]  = {0., 0., 0., 0., 0., 0.}; //Needed for calculating the variance of u
@@ -262,29 +262,13 @@ void loop(void) {  //MAIN CODE iterates indefinitely
    error = TsetPoint - temperature;
 
   //CALCULATIONS FOR THE SCORE FOLLOW
-  if (elapsedTime > changeTime[1]) {   //average squared error is calculated after changeTime[1]
+  if (elapsedTime > changeTime[0]) {   //average squared error is calculated after changeTime[0] ... we want it immediately.
     Jysum += error * error;
     nJy ++;
     Jy = Jysum / nJy;
 
   }
-  //Input Variance Calculations Using Algorithm in https://en.wikipedia.org/wiki/Standard_deviation
-  for (int i = 2; i < 6; i++) { // we start with 2nd change response to allow everyone to start from the same point
-    if (elapsedTime > changeTime[i-1] + inputExclusionTime & elapsedTime <= changeTime[i]){  //for ith input variance
-      nJu[i] ++;
-      QQ[i] += (percentRelayOn-AA[i])*(percentRelayOn-AA[i])*(nJu[i]-1)/nJu[i];
-      AA[i] += (percentRelayOn-AA[i])/ nJu[i];
-      Jui[i] = QQ[i]/(nJu[i]-1);
-    }
-  }
-  float sumNum = 0;
-  float sumDenom = 0;
-  for (int i = 2; i < 6; i++) {
-    sumNum += nJu[i]*Jui[i];
-    sumDenom += nJu[i];
-  }
-  Ju = sumNum/sumDenom;
-  // J = 0.65 * Jy + 0.35 * Ju;
+  
   J = Jy; // the game does not consider the input variance
 
 
