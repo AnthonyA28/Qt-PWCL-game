@@ -69,22 +69,16 @@ float errorPrev = error;
 unsigned long tRelayStart;  //The next statements declare other global variables
 unsigned long startConversionTime;
 unsigned long tLoopStart;
-float elapsedTime; //min, used for test
+float elapsedTime; //min, used for game
 
-float changeTime[] = {0., 5., 18., 30., 30., 30.}; //min, used for test
-float Tsp[] = {26., 26., 40., 40., 40., 40.}; //deg C, used for test, set points UNTIL each changeTime, 2nd value is 1st implemented
-byte fanSetting[] = {255, 255, 255, 0, 255, 255}; // controls fan speed, used for test, values UNTIL each changeTime
+float changeTime[]  = {0. , 5.  , 18., 30., 30., 30.}; //min, used for game
+float Tsp[]         = {26., 26. , 40., 40., 40., 40.}; //deg C, used for game, set points UNTIL each changeTime, 2nd value is 1st implemented
+byte fanSetting[]   = {255, 255 , 255, 0  , 255, 255}; // controls fan speed, used for game, values UNTIL each changeTime
 
-float Tmax = 43;   //used for test maximum temperature until shutdown
+float Tmax = 43;   //used for game maximum temperature until shutdown
 float Jysum = 0;      //Needed for the y-performance measure, sum of squared errors
 unsigned long nJy = 0;  //Needed for the y-performance measure, number of measurements
 float Jy; //Becomes the average squared error
-float inputExclusionTime = 0.0; //min, used for game, no inputexclusion time
-int nJu[]   = {0, 0, 0, 0, 0, 0}; //Needed for the Jui performance measure, number of values after input exclusion time
-float AA[]  = {0., 0., 0., 0., 0., 0.}; //Needed for calculating the variance of u
-float QQ[]  = {0., 0., 0., 0., 0., 0.}; //Needed for calculating the variance of u
-float Jui[] = {0., 0., 0., 0., 0., 0.}; //input variance after exclusion time
-float Ju; //Becomes the average input variance, averaging the values after changes
 float J;  //Overall score, weighted average of Jy and Jx
 
 float fanSpeed = fanSetting[1];  //range 0 or 115 -255, startup cannot be as low as when dynamically changing
@@ -109,7 +103,7 @@ const unsigned int bufferSize = 300;
 char inputbuffer[bufferSize];
 char outputbuffer[bufferSize]; // its much better for the memory to be using a char* rather than a string
 float inputs[numInputs]   ={0.0};
-float outputs[numOutputs] ={0.0, TsetPoint, fanSpeed, temperature , tempFiltered, 0, Ju, Jy, J };
+float outputs[numOutputs] ={0.0, TsetPoint, fanSpeed, temperature , tempFiltered, 0, 0, Jy, J };
 
 void serialize_array(float input[], char * output); // declare the function so it can be placed under where it is used
 bool deserialize_array(const char * input, unsigned int output_size, float output[]); // declare the function so it can be placed under where it is used
@@ -249,10 +243,8 @@ void loop(void) {  //MAIN CODE iterates indefinitely
   analogWrite(fetPin, fanSpeed);
 
   if (elapsedTime >= changeTime[5])
-  {
     shutdown();
-  }
-
+  
   relayCare();
 
 
@@ -286,7 +278,7 @@ void loop(void) {  //MAIN CODE iterates indefinitely
   outputs[i_temperature]  = temperature;
   outputs[i_tempFiltered] = tempFiltered;
   outputs[i_time]         = millis() /60000.0;
-  outputs[i_inputVar]     = Ju;
+  outputs[i_inputVar]     = 0;
   outputs[i_avg_err]      = Jy;
   outputs[i_score]        = J;
 
