@@ -69,12 +69,10 @@ float errorPrev = error;
 unsigned long tRelayStart;  //The next statements declare other global variables
 unsigned long startConversionTime;
 unsigned long tLoopStart;
-bool stopTempHigh = 0;   //flag ending the run due to high temperature
-bool stopTimeEnd = 0;   //flag ending the test when time is up
 float elapsedTime; //min, used for test
 
-float changeTime[] = {0., 12., 21., 30., 30., 30.}; //min, used for test
-float Tsp[] = {25., 36., 40., 40., 40., 40.}; //deg C, used for test, set points UNTIL each changeTime, 2nd value is 1st implemented
+float changeTime[] = {0., 5., 18., 30., 30., 30.}; //min, used for test
+float Tsp[] = {26., 26., 40., 40., 40., 40.}; //deg C, used for test, set points UNTIL each changeTime, 2nd value is 1st implemented
 byte fanSetting[] = {255, 255, 255, 0, 255, 255}; // controls fan speed, used for test, values UNTIL each changeTime
 
 float Tmax = 43;   //used for test maximum temperature until shutdown
@@ -252,7 +250,6 @@ void loop(void) {  //MAIN CODE iterates indefinitely
 
   if (elapsedTime >= changeTime[5])
   {
-    stopTimeEnd = 1;
     shutdown();
   }
 
@@ -278,7 +275,6 @@ void loop(void) {  //MAIN CODE iterates indefinitely
 
   //Checking if Temp ok
   if (temperature > Tmax){    //if noisy use tmpFiltered
-    stopTempHigh = 1;
     Serial.println("Shutting down due to overheat!");
     shutdown();
   }
