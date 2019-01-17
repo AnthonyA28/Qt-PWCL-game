@@ -31,6 +31,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
 
+
     ui->setupUi(this);
     // timer is used to repeatedly check for port data until we are connected
     this->timerId = startTimer(1000);
@@ -63,6 +64,10 @@ MainWindow::MainWindow(QWidget *parent) :
     QDir newDir = QDir::current();
     newDir.cdUp();
     QDir::setCurrent(newDir.path());
+
+    // create the media player
+    this->player = new QMediaPlayer;
+    player->setMedia(QUrl::fromLocalFile(execDir+"/alarm.mp3"));
 
     this->excelFileName = "excelFile.xlsx";
     this->csvFileName   = "data.csv";
@@ -153,7 +158,7 @@ MainWindow::~MainWindow()
     }
     this->csvdoc.close();
 
-
+    delete player;
     delete ui;
 }
 
@@ -169,6 +174,8 @@ void MainWindow::showRequest(const QString &req)
     if (req.contains('!')) {
         ui->emergencyMessageLabel->setText(req);
         if(req.contains("overheat")) {
+            player->setVolume(100);
+            player->play();
             ui->scoreLabel->setText("Score: " + QString::number(static_cast<double>(inputs[i_score]))); //show the score
             ui->scoreRankLabel->setText("Professional Crash Test Dummy!" );
         }
