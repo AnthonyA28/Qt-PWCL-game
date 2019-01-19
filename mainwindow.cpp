@@ -177,7 +177,7 @@ void MainWindow::showRequest(const QString &req)
             player->setVolume(100);
             player->play();
             ui->scoreLabel->setText("Score: " + QString::number(static_cast<double>(inputs[i_score]))); //show the score
-            ui->scoreRankLabel->setText("Professional Crash Test Dummy!" );
+            ui->scoreRankLabel->setText("You have earned the rating of Professional Crash Test Dummy." );
         }
         return;
     }
@@ -248,14 +248,14 @@ void MainWindow::showRequest(const QString &req)
         double show_score_time = 29.0; // time after which we show the score
         if ( time > show_score_time) {
             ui->scoreLabel->setText("Score: " + QString::number(score));  // time to show the value of the score
-            char rankString[200];
-            snprintf(rankString, sizeof(rankString), "Accident waiting to happen\n");
+            char rankString[300];
+            snprintf(rankString, sizeof(rankString), "You have earned the rating of Accident waiting to happen\n");
             if ( score <= 20.0) {
                 if ( score <= 16.0) {
                     if ( score <= 13.0) {
-                              snprintf(rankString, sizeof(rankString), "Control Master\n");
-                    } else {  snprintf(rankString, sizeof(rankString), "Control Student\n") ; }
-                } else {      snprintf(rankString, sizeof(rankString), "Proud owner of a learners permit\n") ; }
+                              snprintf(rankString, sizeof(rankString), "You have earned the rating of Control Master.\n");
+                    } else {  snprintf(rankString, sizeof(rankString), "You have earned the rating of Control Student.\n") ; }
+                } else {      snprintf(rankString, sizeof(rankString), "You have earned the rating of Proud owner of a learners permit.\n") ; }
             }
             qDebug() << "rank output string: " << rankString << "\n";
             ui->scoreRankLabel->setText(rankString);
