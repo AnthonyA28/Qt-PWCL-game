@@ -177,7 +177,7 @@ void MainWindow::showRequest(const QString &req)
             player->setVolume(100);
             player->play();
             ui->scoreLabel->setText("Score: " + QString::number(static_cast<double>(inputs[i_score]), 'f', 2)); //show the score precision = 2
-            ui->scoreRankLabel->setText("You have earned the rating of Professional Crash Test Dummy." );
+            ui->scoreRankLabel->setText("You have earned the rating of\nProfessional Crash Test Dummy" );
         }
         return;
     }
@@ -248,13 +248,13 @@ void MainWindow::showRequest(const QString &req)
         if ( time > show_score_time) {
             ui->scoreLabel->setText("Score: " + QString::number(score, 'f', 2));  //show value of score with precision = 2
             char rankString[300];
-            snprintf(rankString, sizeof(rankString), "You have earned the rating of Accident waiting to happen\n");
+            snprintf(rankString, sizeof(rankString), "You have earned the rating of \n Accident waiting to happen\n");
             if ( score <= 20.0) {
                 if ( score <= 16.0) {
                     if ( score <= 13.0) {
-                              snprintf(rankString, sizeof(rankString), "You have achieved the rating of Control Master.\n");
-                    } else {  snprintf(rankString, sizeof(rankString), "You have achieved the rating of Control Student.\n") ; }
-                } else {      snprintf(rankString, sizeof(rankString), "You have achieved the rating of Proud owner of a learners permit.\n") ; }
+                              snprintf(rankString, sizeof(rankString), "You have achieved the rating of\nControl Master");
+                    } else {  snprintf(rankString, sizeof(rankString), "You have achieved the rating of\nControl Student") ; }
+                } else {      snprintf(rankString, sizeof(rankString), "You have achieved the rating of\nProud owner of a learners permit") ; }
             }
             qDebug() << "rank output string: " << rankString << "\n";
             ui->scoreRankLabel->setText(rankString);
