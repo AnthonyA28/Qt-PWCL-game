@@ -101,7 +101,7 @@ MainWindow::MainWindow(QWidget *parent) :
     */
     ui->plot->addGraph();
     ui->plot->graph(0)->setName("Set Point");
-    ui->plot->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, QColor("orange"), 5));
+    ui->plot->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, QColor("orange"), 8));
     ui->plot->graph(0)->setPen(QPen(Qt::white)); // so we dont see the line connecting the dots
     ui->plot->graph(0)->setValueAxis(ui->plot->yAxis2);
 
@@ -176,7 +176,7 @@ void MainWindow::showRequest(const QString &req)
         if(req.contains("overheat")) {
             player->setVolume(100);
             player->play();
-            ui->scoreLabel->setText("Score: " + QString::number(static_cast<double>(inputs[i_score]))); //show the score
+            ui->scoreLabel->setText("Score: " + QString::number(static_cast<double>(inputs[i_score]), 'f', 2)); //show the score precision = 2
             ui->scoreRankLabel->setText("You have earned the rating of Professional Crash Test Dummy." );
         }
         return;
@@ -204,11 +204,11 @@ void MainWindow::showRequest(const QString &req)
         ui->outputTable->insertRow(ui->outputTable->rowCount()); // create a new row
 
         // add a string of each value into each column at the last row in the outputTable
-        ui->outputTable->setItem(ui->outputTable->rowCount()-1, 0, new QTableWidgetItem(QString::number( time,'g',3)));
-        ui->outputTable->setItem(ui->outputTable->rowCount()-1, 1, new QTableWidgetItem(QString::number( percentOn,'g',3)));
-        ui->outputTable->setItem(ui->outputTable->rowCount()-1, 2, new QTableWidgetItem(QString::number( temp,'g',3)));
-        ui->outputTable->setItem(ui->outputTable->rowCount()-1, 3, new QTableWidgetItem(QString::number( tempFilt,'g',3)));
-        ui->outputTable->setItem(ui->outputTable->rowCount()-1, 4, new QTableWidgetItem(QString::number( setPoint,'g',3)));
+        ui->outputTable->setItem(ui->outputTable->rowCount()-1, 0, new QTableWidgetItem(QString::number( time,'f',2)));
+        ui->outputTable->setItem(ui->outputTable->rowCount()-1, 1, new QTableWidgetItem(QString::number( percentOn,'f',2)));
+        ui->outputTable->setItem(ui->outputTable->rowCount()-1, 2, new QTableWidgetItem(QString::number( temp,'f',2)));
+        ui->outputTable->setItem(ui->outputTable->rowCount()-1, 3, new QTableWidgetItem(QString::number( tempFilt,'f',2)));
+        ui->outputTable->setItem(ui->outputTable->rowCount()-1, 4, new QTableWidgetItem(QString::number( setPoint,'f',2)));
         if (!ui->outputTable->underMouse())
             ui->outputTable->scrollToBottom();   // scroll to the bottom to ensure the last value is visible
 
@@ -230,11 +230,10 @@ void MainWindow::showRequest(const QString &req)
         stream << file_output_buffer;
         stream.flush();
 
-
         /*
         *  Show the current values from the port in the current parameters area
         */
-        ui->avgerrLabel->setNum( avg_err);
+        ui->avgerrLabel->setText( QString::number(avg_err, 'f', 2)); // precision = 2
 
         /*
          * After 29 minutes we show the score
@@ -247,7 +246,7 @@ void MainWindow::showRequest(const QString &req)
         // todo: simplify this #p3
         double show_score_time = 29.0; // time after which we show the score
         if ( time > show_score_time) {
-            ui->scoreLabel->setText("Score: " + QString::number(score));  // time to show the value of the score
+            ui->scoreLabel->setText("Score: " + QString::number(score, 'f', 2));  //show value of score with precision = 2
             char rankString[300];
             snprintf(rankString, sizeof(rankString), "You have earned the rating of Accident waiting to happen\n");
             if ( score <= 20.0) {
