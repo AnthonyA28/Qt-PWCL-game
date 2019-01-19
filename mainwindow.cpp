@@ -253,9 +253,9 @@ void MainWindow::showRequest(const QString &req)
             if ( score <= 20.0) {
                 if ( score <= 16.0) {
                     if ( score <= 13.0) {
-                              snprintf(rankString, sizeof(rankString), "You have earned the rating of Control Master.\n");
-                    } else {  snprintf(rankString, sizeof(rankString), "You have earned the rating of Control Student.\n") ; }
-                } else {      snprintf(rankString, sizeof(rankString), "You have earned the rating of Proud owner of a learners permit.\n") ; }
+                              snprintf(rankString, sizeof(rankString), "You have achieved the rating of Control Master.\n");
+                    } else {  snprintf(rankString, sizeof(rankString), "You have achieved the rating of Control Student.\n") ; }
+                } else {      snprintf(rankString, sizeof(rankString), "You have achieved the rating of Proud owner of a learners permit.\n") ; }
             }
             qDebug() << "rank output string: " << rankString << "\n";
             ui->scoreRankLabel->setText(rankString);
