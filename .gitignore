@@ -4,4 +4,8 @@ builds/
 *.user
 *.xlsx
 *.csv
+*.m4a
+*.mp3
+*wav
+*.opus
 port.cpp.bak
