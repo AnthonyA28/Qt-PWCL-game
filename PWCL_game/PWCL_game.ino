@@ -200,6 +200,7 @@ void loop(void) {  //MAIN CODE iterates indefinitely
   if ( addr[0] != 0x10 && addr[0] != 0x28) {
       Serial.print(F("Device is not recognized!"));
       // return -1000;
+      Serial.print(F("Temperature probe malfunctioning!"));
   }
   ds.reset();
   ds.select(addr);
