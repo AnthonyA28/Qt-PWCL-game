@@ -434,6 +434,18 @@ bool MainWindow::deserializeArray(const char* const input, unsigned int output_s
 */
 bool MainWindow::disonnectedPopUpWindow()
 {
+    // ensure a backupfile directory exists, create one if it doesnt
+    QDir backupDir("backupFiles");
+    if( !backupDir.exists() )
+         backupDir.mkpath(".");
+    QDir::setCurrent("backupFiles");
+
+    // Create a backup file titles with the current date and time
+    QDateTime currentTime(QDateTime::currentDateTime());
+    QString dateStr = currentTime.toString("d-MMM--h-m-A");
+    dateStr.append(".csv"); // the 's' cant be used when formatting the time string
+    this->csvdoc.copy(dateStr);
+
     QMessageBox::critical(this,
                           "Error",
                           "Fatal Error, device disconnected.\n"
