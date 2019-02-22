@@ -55,6 +55,8 @@ private slots:
     void on_portComboBox_activated(int index);
     void on_setButton_clicked();
 
+    void on_actionExport_Excel_File_triggered();
+
 private:
 
     Ui::MainWindow *ui;
