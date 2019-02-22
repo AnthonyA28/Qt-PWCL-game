@@ -69,13 +69,11 @@ MainWindow::MainWindow(QWidget *parent) :
     this->player = new QMediaPlayer;
     player->setMedia(QUrl::fromLocalFile(execDir+"/audio/alarm.wav"));
 
-    this->excelFileName = "excelFile.xlsx";
-    this->csvFileName   = "data.csv";
-
-    if (QFile::exists(this->excelFileName)) {
-        QFile oldFile(this->excelFileName);
-        oldFile.remove();
-    }
+    // Create file titles with the current date and time
+    QDateTime currentTime(QDateTime::currentDateTime());
+    QString dateStr = currentTime.toString("d-MMM--h-m-A");
+    this->excelFileName = "Data-Game.xlsx";
+    this->csvFileName   = dateStr + "-Game.csv";
 
     // give the excel file column headers
     this->xldoc.write( 1 , 1, "Time");
@@ -83,16 +81,6 @@ MainWindow::MainWindow(QWidget *parent) :
     this->xldoc.write( 1 , 3, "Temperature");
     this->xldoc.write( 1 , 4, "Filtered Temperature");
     this->xldoc.write( 1 , 5, "Set Point");
-
-    // open the csv file and give it a header
-    this->csvdoc.setFileName(this->csvFileName);
-    if (this->csvdoc.open(QIODevice::Truncate | QIODevice::WriteOnly | QIODevice::Text)) {
-        QTextStream stream(&this->csvdoc);
-        stream << "Time, perent on, Temp, Temp filtered, Set Point\n";
-    }
-    else{
-        qDebug() << " Failed to open data.csv \n";
-    }
 
 
     /*
@@ -111,7 +99,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->plot->graph(1)->setValueAxis(ui->plot->yAxis2);
 
     ui->plot->addGraph();
-    ui->plot->graph(2)->setName("Temperature Filtered");
+    ui->plot->graph(2)->setName("Filtered Temperature");
     ui->plot->graph(2)->setPen(QPen(Qt::blue));
     ui->plot->graph(2)->setValueAxis(ui->plot->yAxis2);
 
@@ -151,10 +139,7 @@ MainWindow::~MainWindow()
              backupDir.mkpath(".");
         QDir::setCurrent("backupFiles");
 
-        QDateTime currentTime(QDateTime::currentDateTime());
-        QString dateStr = currentTime.toString("d-MMM--h-m-A");  // create a date title for the backup file
-        dateStr.append(".csv"); // the 's' cant be used when formatting the time string
-        this->csvdoc.copy(dateStr); // save a backup file of the csv file
+        this->csvdoc.copy(this->csvFileName); // save a backup file of the csv file
     }
     this->csvdoc.close();
 
@@ -188,6 +173,21 @@ void MainWindow::showRequest(const QString &req)
             this->validConnection = true;  // String was parsed therefore the correct arduino program is uploaded
             ui->percentOnInput->setEnabled(true);
             ui->emergencyMessageLabel->clear();
+
+            // open the csv file and give it a header
+            this->csvdoc.setFileName(this->csvFileName);
+            if (this->csvdoc.open(QIODevice::Truncate | QIODevice::WriteOnly | QIODevice::Text)) {
+                QTextStream stream(&this->csvdoc);
+                stream << "Time, Percent on, Temperature, Filtered Temperature, Set Point\n";
+            }
+            else{
+                qDebug() << " Failed to open  csv file  \n";
+                QString errMsg = this->csvdoc.errorString();
+                QFileDevice::FileError err = this->csvdoc.error();
+                qDebug() << " \n ERROR msg : " << errMsg ;
+                qDebug() << " \n ERROR : " << err;
+            }
+
         }
 
         double time       = static_cast<double>(inputs[i_time]);
@@ -441,10 +441,7 @@ bool MainWindow::disonnectedPopUpWindow()
     QDir::setCurrent("backupFiles");
 
     // Create a backup file titles with the current date and time
-    QDateTime currentTime(QDateTime::currentDateTime());
-    QString dateStr = currentTime.toString("d-MMM--h-m-A");
-    dateStr.append(".csv"); // the 's' cant be used when formatting the time string
-    this->csvdoc.copy(dateStr);
+    this->csvdoc.copy(this->csvFileName);
 
     QMessageBox::critical(this,
                           "Error",
