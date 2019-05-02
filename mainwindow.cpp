@@ -93,19 +93,18 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->plot->graph(0)->setValueAxis(ui->plot->yAxis2);
 
     ui->plot->addGraph();
-    ui->plot->graph(1)->setName("Temperature");
+    ui->plot->graph(1)->setName("Filtered Temperature");
     ui->plot->graph(1)->setPen(QPen(Qt::green));
     ui->plot->graph(1)->setValueAxis(ui->plot->yAxis2);
 
     ui->plot->addGraph();
-    ui->plot->graph(2)->setName("Filtered Temperature");
+    ui->plot->graph(2)->setName("Temperature");
     ui->plot->graph(2)->setPen(QPen(Qt::blue));
     ui->plot->graph(2)->setValueAxis(ui->plot->yAxis2);
 
     ui->plot->addGraph();
     ui->plot->graph(3)->setName("Percent Heater on");
     ui->plot->graph(3)->setPen(QPen(QColor("purple"))); // line color for the first graph
-
 
     ui->plot->xAxis2->setVisible(true);  // show x ticks at top
     ui->plot->xAxis2->setVisible(false); // dont show labels at top
@@ -262,10 +261,10 @@ void MainWindow::showRequest(const QString &req)
         /*
         *  Place the latest values in the graph
         */
-        ui->plot->graph(0)->addData( time,  setPoint);
-        ui->plot->graph(1)->addData( time,  temp);
-        ui->plot->graph(2)->addData( time,  tempFilt);
         ui->plot->graph(3)->addData( time,  percentOn);
+        ui->plot->graph(2)->addData( time,  temp);
+        ui->plot->graph(1)->addData( time,  tempFilt);
+        ui->plot->graph(0)->addData( time,  setPoint);
         ui->plot->replot( QCustomPlot::rpQueuedReplot );
         ui->plot->rescaleAxes(); // should be in a button or somethng
 
