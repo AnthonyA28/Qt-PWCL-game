@@ -245,13 +245,13 @@ void MainWindow::showRequest(const QString &req)
         if ( time > show_score_time) {
             ui->scoreLabel->setText("Score: " + QString::number(score, 'f', 2));  //show value of score with precision = 2
             char rankString[300];
-            snprintf(rankString, sizeof(rankString), "You have earned the rating of \n Accident waiting to happen\n");
+            snprintf(rankString, sizeof(rankString), "You have earned\nthe rating of:\nAccident waiting to happen");
             if ( score <= 20.0) {
                 if ( score <= 16.0) {
                     if ( score <= 13.0) {
-                              snprintf(rankString, sizeof(rankString), "You have achieved the rating of\nControl Master");
-                    } else {  snprintf(rankString, sizeof(rankString), "You have achieved the rating of\nControl Student") ; }
-                } else {      snprintf(rankString, sizeof(rankString), "You have achieved the rating of\nProud owner of a learners permit") ; }
+                              snprintf(rankString, sizeof(rankString), "You have achieved\nthe rating of:\nControl Master");
+                    } else {  snprintf(rankString, sizeof(rankString), "You have achieved\nthe rating of:\nControl Student") ; }
+                } else {      snprintf(rankString, sizeof(rankString), "You have achieved\nthe rating of:\nProud owner\nof a learners permit") ; }
             }
             qDebug() << "rank output string: " << rankString << "\n";
             ui->scoreRankLabel->setText(rankString);
