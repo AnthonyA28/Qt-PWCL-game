@@ -94,7 +94,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->plot->addGraph();
     ui->plot->graph(1)->setName("Filtered Temperature");
-    ui->plot->graph(1)->setPen(QPen(Qt::green));
+    ui->plot->graph(1)->setPen(QPen(qRgb(0,100,0)));
     ui->plot->graph(1)->setValueAxis(ui->plot->yAxis2);
 
     ui->plot->addGraph();
@@ -329,6 +329,7 @@ void MainWindow::on_setButton_clicked()
 */
 void MainWindow::timerEvent(QTimerEvent *event)
 {
+    Q_UNUSED( event ) // to ignore the unused parameter warning
     if (!port.L_isConnected()) {
         QList<QSerialPortInfo> portList = QSerialPortInfo::availablePorts();
         // todo: check what hapens if the socket changes. This may be an issue if we change the COM before establishing a connection  #p2
@@ -446,6 +447,7 @@ bool MainWindow::disonnectedPopUpWindow()
                           "Close and restart the application to continue.\n",
                           QMessageBox::Ok
                           );
+    return true;
 }
 
 
