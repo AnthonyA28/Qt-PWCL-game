@@ -115,7 +115,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // we dont want a legend
     ui->plot->legend->setVisible(false);
-
+    QCPAxisRect *ar = ui->plot->axisRect(0); // get the default range axis and tell it to zoom and drag relative to right side yaxis
+    ar->setRangeDragAxes(ui->plot->xAxis, ui->plot->yAxis2);
+    ar->setRangeZoomAxes(ui->plot->xAxis, ui->plot->yAxis2);
 
 }
 
@@ -266,7 +268,8 @@ void MainWindow::showRequest(const QString &req)
         ui->plot->graph(1)->addData( time,  tempFilt);
         ui->plot->graph(0)->addData( time,  setPoint);
         ui->plot->replot( QCustomPlot::rpQueuedReplot );
-        ui->plot->rescaleAxes(); // should be in a button or somethng
+        if (ui->auto_fit_CheckBox->isChecked())
+            ui->plot->rescaleAxes(); // should be in a button or somethng
 
 
     }
@@ -428,3 +431,46 @@ void MainWindow::on_actionExport_Excel_File_triggered()
     }
 
 }
+
+
+/**
+ * @brief MainWindow::on_auto_fit_CheckBox_stateChanged
+ * Called when the user clicked the auto-fit checkbox, changes the default settings of the graph to fit the data.
+ * @param arg1
+ * arg1 == true == 1 when checked
+ */
+void MainWindow::on_auto_fit_CheckBox_stateChanged(int arg1)
+{
+    ui->plot->setInteraction(QCP::iRangeDrag, !arg1);
+    ui->plot->setInteraction(QCP::iRangeZoom, !arg1);
+}
+
+/**
+ * @brief MainWindow::on_zoom_xaxis_checkBox_stateChanged
+ * Called when the user clicks the zoom-x checkbox, changes behavior of zooming into the x-axis
+ * @param arg1
+ * arg1 == true ==1 when checked
+ */
+void MainWindow::on_zoom_xaxis_checkBox_stateChanged(int arg1)
+{
+    Q_UNUSED(arg1);
+
+    QCPAxisRect *ar = ui->plot->axisRect(0); // get the default range axis and tell it to zoom and drag relative to right side yaxis
+    QCPAxis *y = ui->plot->yAxis2;
+    QCPAxis *x = ui->plot->xAxis2;
+
+    if (ui->zoom_xaxis_checkBox->isChecked())
+        x = ui->plot->xAxis;
+    if (ui->zoomy_checkBox->isChecked())
+        y = ui->plot->yAxis;
+
+//// *dont care about dragging  ..      ar->setRangeDragAxes(ui->plot->xAxis, ui->plot->yAxis2);
+   ar->setRangeZoomAxes(x, y);
+   ar->setRangeDragAxes(ui->plot->xAxis, y);
+}
+
+void MainWindow::on_zoomy_checkBox_stateChanged(int arg1)
+{
+    emit (on_zoom_xaxis_checkBox_stateChanged(arg1));
+}
+
