@@ -88,7 +88,6 @@ private:
     PORT port;
     bool validConnection;
 
-    QString csvFileName;
     QString excelFileName;
     QXlsx::Document xldoc;
     QFile csvdoc;

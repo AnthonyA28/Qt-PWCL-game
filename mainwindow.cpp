@@ -32,6 +32,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 
     ui->setupUi(this);
+    ui->mainToolBar->close(); // we dont need a toolbar
     // timer is used to repeatedly check for port data until we are connected
     this->timerId = startTimer(250);
     // indicates when we are connected to the port AND the correct arduino program is being run
@@ -67,10 +68,7 @@ MainWindow::MainWindow(QWidget *parent) :
     player->setMedia(QUrl("qrc:/sound/alarm.wav"));
 
     // Create file titles with the current date and time
-    QDateTime currentTime(QDateTime::currentDateTime());
-    QString dateStr = currentTime.toString("d-MMM--h-m-A");
     this->excelFileName = "Data-Game.xlsx";
-    this->csvFileName   = dateStr + "-Game.csv";
 
     // give the excel file column headers
     this->xldoc.write( 1 , 1, "Time");
@@ -129,16 +127,6 @@ MainWindow::MainWindow(QWidget *parent) :
 */
 MainWindow::~MainWindow()
 {
-    if( this->port.L_isConnected())
-    {
-        // ensure a backupfile directory exists, create one if it doesnt
-        QDir backupDir("backupFiles");
-        if( !backupDir.exists() )
-             backupDir.mkpath(".");
-        QDir::setCurrent("backupFiles");
-
-        this->csvdoc.copy(this->csvFileName); // save a backup file of the csv file
-    }
     this->csvdoc.close();
 
     delete player;
@@ -175,7 +163,13 @@ void MainWindow::showRequest(const QString &req)
             ui->emergencyMessageLabel->clear();
 
             // open the csv file and give it a header
-            this->csvdoc.setFileName(this->csvFileName);
+            QDir backupDir("log_files");
+            if( !backupDir.exists() )
+                 backupDir.mkpath(".");
+            QDir::setCurrent("log_files");
+            QDateTime currentTime(QDateTime::currentDateTime());
+            QString dateStr = currentTime.toString("d-MMM--h-m-A");
+            this->csvdoc.setFileName("..\\log_files\\" + dateStr + "-Game.csv");
             if (this->csvdoc.open(QIODevice::Truncate | QIODevice::WriteOnly | QIODevice::Text)) {
                 QTextStream stream(&this->csvdoc);
                 stream << "Time, Percent on, Temperature, Filtered Temperature, Set Point\n";
@@ -378,15 +372,6 @@ void MainWindow::on_portComboBox_activated(int index)
 */
 bool MainWindow::disonnectedPopUpWindow()
 {
-    // ensure a backupfile directory exists, create one if it doesnt
-    QDir backupDir("backupFiles");
-    if( !backupDir.exists() )
-         backupDir.mkpath(".");
-    QDir::setCurrent("backupFiles");
-
-    // Create a backup file titles with the current date and time
-    this->csvdoc.copy(this->csvFileName);
-
     QMessageBox::critical(this,
                           "Error",
                           "Fatal Error, device disconnected.\n"
