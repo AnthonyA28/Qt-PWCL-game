@@ -64,7 +64,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // create the media player
     this->player = new QMediaPlayer;
-    player->setMedia(QUrl::fromLocalFile(execDir+"/audio/alarm.wav"));
+    player->setMedia(QUrl("qrc:/sound/alarm.wav"));
 
     // Create file titles with the current date and time
     QDateTime currentTime(QDateTime::currentDateTime());
