@@ -31,6 +31,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using namespace QXlsx;
 
 #include "port.h"
+#include "PWCL_game\com.h"
+
+
+#define i_percentOn    0
+#define i_setPoint     1
+#define i_fanSpeed     2
+#define i_temperature  3
+#define i_tempFiltered 4
+#define i_time         5
+#define i_inputVar     6
+#define i_avg_err      7
+#define i_score        8
 
 
 namespace Ui {
@@ -58,6 +70,8 @@ private slots:
     void on_actionExport_Excel_File_triggered();
 
 private:
+    COM com;
+
 
     Ui::MainWindow *ui;
 
@@ -71,21 +85,6 @@ private:
     QXlsx::Document xldoc;
     QFile csvdoc;
     QMediaPlayer* player;
-    bool deserializeArray(const char* const input, unsigned int output_size, std::vector<float>& output);
-    std::vector<float> inputs;  // Holds values read from the port ordered below
-    /*
-    * Assign the index in which these values will exist in the 'inputs' and 'outputs' arrays
-    */
-    const unsigned int i_percentOn     = 0;      // for input & output
-    const unsigned int i_setPoint      = 1;      // for input & output
-    const unsigned int i_fanSpeed      = 2;      // for input & output
-    const unsigned int i_temperature   = 3;      // for input
-    const unsigned int i_tempFiltered  = 4;      // for input
-    const unsigned int i_time          = 5;      // for input
-    const unsigned int i_input_var     = 6;      // for input
-    const unsigned int i_avg_err       = 7;      // for input
-    const unsigned int i_score         = 8;      // for input
-    const unsigned int numInputs       = 9;
 
 protected:
     bool event(QEvent *event);

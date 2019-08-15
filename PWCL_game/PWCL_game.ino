@@ -36,6 +36,7 @@ bool autoEnabled = false;
 
 // //PRELIMINARIES
 #include <OneWire.h> //library for DS18B20
+#include "com.h"
 
 //Soft serial pins
 #define rxPin 8   //connect to green wire of CP210 or to orange wire of FTDI
@@ -86,28 +87,52 @@ float TsetPoint = Tsp[1];  // deg C
 int tdelay = 3; //delay in msec used with serial interaction commands
 int tGETSET = 1000;  //delay before some GET and SET commands
 
-// defining some indices to be used for the input and output arrays
-const unsigned int i_percentOn    = 0;  //  for input and output
-const unsigned int i_setPoint     = 1;  //  for output
-const unsigned int i_fanSpeed     = 2;  //  for output
-const unsigned int i_temperature  = 3; //   for output
-const unsigned int i_tempFiltered = 4; //   for output
-const unsigned int i_time         = 5; //   for output
-const unsigned int i_inputVar     = 6; //   for output
-const unsigned int i_avg_err      = 7; //   for output
-const unsigned int i_score        = 8; //   for output
-const unsigned int numInputs      = 1;
-const unsigned int numOutputs     = 9;
-// initialize the input and output arrays
-const unsigned int bufferSize = 300;
-char inputbuffer[bufferSize];
-char outputbuffer[bufferSize]; // its much better for the memory to be using a char* rather than a string
-float inputs[numInputs]   ={0.0};
-float outputs[numOutputs] ={0.0, TsetPoint, fanSpeed, temperature , tempFiltered, 0, 0, Jy, J };
+/******shared between C++ code */
+#define i_percentOn    0
+#define i_setPoint     1
+#define i_fanSpeed     2
+#define i_temperature  3
+#define i_tempFiltered 4
+#define i_time         5
+#define i_inputVar     6
+#define i_avg_err      7
+#define i_score        8
+#define NUMVARS        9
+#define BUFFERSIZE 500
 
-void serialize_array(float input[], char * output); // declare the function so it can be placed under where it is used
-bool deserialize_array(const char * input, unsigned int output_size, float output[]); // declare the function so it can be placed under where it is used
-void check_input(); // declare the function so it can be placed under where it is used
+COM com;
+
+char buffer[BUFFERSIZE];
+void check_input()
+{
+  // checks for input from the port and potentially changes parameters
+  /*  I dont use the serial.readString becuse it will read ANY size input
+  presenting the possibiliity of a buffer overflow. this will read up to a closing bracket
+  or until the input buffer is at max capacity.
+  */
+  if (Serial.available()) {
+    int j = 0;
+    for (unsigned int i = 0; i < BUFFERSIZE - 1 && j < 500; i ++) {
+      char c = Serial.read();
+      if ( c == -1){
+        i -=1;
+        j +=1;
+        continue;
+      }
+      buffer[i] = c; // place this character in the input buffer
+      if (c == ']' || c == '\0' ) { // stop reading chracters if we have read the last bracket or a null charcter
+        buffer[i+1] = '\0'; // this will null terminate the buffer
+        break;
+      }
+      if (c == '!')
+        shutdown();
+      delay(10);
+    }
+    while (Serial.available())
+      char _ = Serial.read(); // this throws aways any other character in the buffer after the first right bracket
+    com.deserialize_array(buffer);
+  }
+}
 
 void setFanPwmFrequency(int pin, int divisor) {
   //From http://playground.arduino.cc/Code/PwmFrequency?action=sourceblock&num=2
@@ -268,144 +293,22 @@ void loop(void) {  //MAIN CODE iterates indefinitely
   }
 
     /* place current values in the output array */
-  outputs[i_setPoint]     = TsetPoint;
-  outputs[i_percentOn]    = percentRelayOn;
-  outputs[i_fanSpeed]     = fanSpeed;
-  outputs[i_temperature]  = temperature;
-  outputs[i_tempFiltered] = tempFiltered;
-  outputs[i_time]         = millis() /60000.0;
-  outputs[i_inputVar]     = 0;
-  outputs[i_avg_err]      = Jy;
-  outputs[i_score]        = J;
+  com.set(i_setPoint,TsetPoint);
+  com.set(i_percentOn,percentRelayOn);
+  com.set(i_fanSpeed,fanSpeed);
+  com.set(i_temperature,temperature);
+  com.set(i_tempFiltered,tempFiltered);
+  com.set(i_time,millis() /60000.0);
+  com.set(i_inputVar,0);
+  com.set(i_avg_err,Jy);
+  com.set(i_score,J);
 
   /* fill the ouput char buffer with the contents of the output array */
-  serialize_array(outputs, outputbuffer);
-  Serial.println(outputbuffer); // send the output buffer to the port
-
+  //// dont need this // Serial.println(buffer); // send the output buffer to the port
+  com.printCurVals();
   while ( millis() < tLoopStart + stepSize ){
     relayCare();
     check_input();
   }
-  percentRelayOn = inputs[i_percentOn]; // this is done at the end so the heating so any changes are in sync with the data logging.
-}
-
-/**
-  Fills <output> with a string representation of the <input[]> array.
-*/
-void serialize_array(float input[], char * output)
-{
-  char tmp[15];
-  unsigned int index = 0;
-  unsigned int tmp_size;
-  memcpy(& output[index], "[", 1);
-  index++;
-  for (unsigned int i = 0; i < numOutputs - 1; i++)
-  {
-    dtostrf(input[i], 0, 4, tmp); // (val, minimum width, precision , str)
-    tmp_size = strlen(tmp);
-    memcpy(& output[index], tmp, tmp_size);
-    index += tmp_size;
-    const char * comma  = ",";
-    memcpy(& output[index], comma, 1);
-    index += 1;
-  }
-  dtostrf(input[numOutputs - 1], 0, 4, tmp);
-  tmp_size = strlen(tmp);
-  memcpy(& output[index], tmp, tmp_size);
-  index += tmp_size;
-  memcpy(& output[index], "]", 1);
-  index += 1;
-  const char * null  = "\0";
-  memcpy(& output[index], null, 1);
-}
-
-
-
-
-/**
-Transforms the <input> string to a float array <output> of known <output_size>
-*/
-bool deserialize_array(const char* const input, unsigned int output_size,  float output[] )
-{
-        /*
-    Ensure that the input string has the correct format and number of numbers to be parsed
-    */
-    const char*  p = input;
-    unsigned int num_commas     = 0;
-    unsigned int num_brackets   = 0;
-    unsigned int num_values     = 0;
-
-    while (*p)
-    {
-      if (*p == '[') { num_brackets++;
-      } else if ( *p == ']' ) {num_brackets++; num_values++;
-      } else if ( *p == ',' ) {num_commas++; num_values++;
-      } p++;
-    }
-    if (num_brackets != 2) {
-        Serial.print("(A) Parse error, not valid array\n");
-        return false;
-    }
-    if (num_values != output_size) {
-        Serial.print("(A) Parse error, input size incorrect\n");
-        return false;
-    }
-
-
-   char* pEnd;
-   p = input + 1;
-   for ( unsigned int i = 0; i < output_size; i ++ )
-   {
-
-        bool is_a_number = false;
-        const char* nc = p; // nc will point to the next comma or the closing bracket
-        while(*nc != ',' && *nc != ']' && *nc)
-        {
-            if ( (int)*nc >= 48 && (int)*nc <= 57 )
-                is_a_number = true;
-            nc++;
-        }
-        if ( is_a_number )
-        {
-           output[i] = strtod(p, &pEnd); // strtof can returns nan when parsing nans,
-           // strod returns 0 when parsing nans
-           p = pEnd;
-        }
-        while (*p != ',' && *p != ']' && *p)
-            p++;
-        p++;
-   }
-   p = input;
-   return true;
-}
-
-
-/**
-  Checks the port for any incoming data. If new data has arrived, it will be used to set the current values.
-*/
-void check_input()
-{
-  // checks for input from the port and potentially changes parameters
-  /*  I dont use the serial.readString becuse it will read ANY size input
-  presenting the possibiliity of a buffer overflow. this will read up to a closing bracket
-  or until the input buffer is at max capacity.
-  */
-  if (Serial.available()) {
-    for (unsigned int i = 0; i < bufferSize - 1; i ++)
-    {
-      char c = Serial.read();
-      inputbuffer[i] = c; // place this character in the input buffer
-      if (c == ']' || c == '\0' ) { // stop reading chracters if we have read the last bracket or a null charcter
-        inputbuffer[i+1] = '\0'; // this will null terminate the inputbuffer
-        break;
-      }
-      if (c == '!')
-        shutdown();
-      delay(10);
-    }
-    while (Serial.available())
-      char _ = Serial.read(); // this throws aways any other character in the buffer after the first right bracket
-    deserialize_array(inputbuffer, numInputs, inputs);
-  }
-
+  percentRelayOn = com.get(i_percentOn); // this is done at the end so the heating so any changes are in sync with the data logging.
 }
