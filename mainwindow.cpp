@@ -33,6 +33,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->setupUi(this);
     ui->mainToolBar->close(); // we dont need a toolbar
+
     // timer is used to repeatedly check for port data until we are connected
     this->timerId = startTimer(250);
     // indicates when we are connected to the port AND the correct arduino program is being run
@@ -76,6 +77,7 @@ MainWindow::MainWindow(QWidget *parent) :
     this->xldoc.write( 1 , 3, "Temperature");
     this->xldoc.write( 1 , 4, "Filtered Temperature");
     this->xldoc.write( 1 , 5, "Set Point");
+    this->xldoc.write( 1 , 6, "Fan Speed");
 
 
     /*
@@ -172,7 +174,7 @@ void MainWindow::showRequest(const QString &req)
             this->csvdoc.setFileName("..\\log_files\\" + dateStr + "-Game.csv");
             if (this->csvdoc.open(QIODevice::Truncate | QIODevice::WriteOnly | QIODevice::Text)) {
                 QTextStream stream(&this->csvdoc);
-                stream << "Time, Percent on, Temperature, Filtered Temperature, Set Point\n";
+                stream << "Time, Percent on, Temperature, Filtered Temperature, Set Point, Fan Speed\n";
             }
             else{
                 qDebug() << " Failed to open  csv file  \n";
@@ -191,6 +193,7 @@ void MainWindow::showRequest(const QString &req)
         double setPoint   = static_cast<double>(com.get(i_setPoint));
         double score      = static_cast<double>(com.get(i_score));
         double avg_err    = static_cast<double>(com.get(i_avg_err));
+        double fanSpeed   = static_cast<double>(com.get(i_fanSpeed));
 
         /*
         *  Update the output table with the last parameters read from the port.
@@ -212,13 +215,14 @@ void MainWindow::showRequest(const QString &req)
         this->xldoc.write(ui->outputTable->rowCount(), 3,  (qRound(temp*100))/100.0);
         this->xldoc.write(ui->outputTable->rowCount(), 4,  (qRound(tempFilt*100))/100.0);
         this->xldoc.write(ui->outputTable->rowCount(), 5,  (qRound(setPoint*100))/100.0);
+        this->xldoc.write(ui->outputTable->rowCount(), 6,  (qRound(fanSpeed*100))/100.0);
 
         /*
         *  Update the csv file with the last data read from the port
         */
         char file_output_buffer[200]   = "";
-        snprintf(file_output_buffer, sizeof(file_output_buffer),"%6.2f,%6.2f,%6.2f,%6.2f,%6.2f\n",
-             time,  percentOn,  temp,  tempFilt,  setPoint);
+        snprintf(file_output_buffer, sizeof(file_output_buffer),"%6.2f,%6.2f,%6.2f,%6.2f,%6.2f,%6.2f\n",
+             time,  percentOn,  temp,  tempFilt,  setPoint, fanSpeed);
         QTextStream stream(&this->csvdoc);
         stream << file_output_buffer;
         stream.flush();
