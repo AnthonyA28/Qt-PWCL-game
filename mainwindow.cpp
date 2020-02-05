@@ -494,3 +494,9 @@ void MainWindow::on_zoomy_checkBox_stateChanged(int arg1)
     emit (on_zoom_xaxis_checkBox_stateChanged(arg1));
 }
 
+
+void MainWindow::on_actionAbout_triggered()
+{
+    About* ab = new About();
+    ab->show();
+}

@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QMainWindow>
 #include <QMediaPlayer>
+#include "about.h"
 
 #include "xlsxdocument.h"
 #include "xlsxchartsheet.h"
@@ -76,6 +77,8 @@ private slots:
     void on_zoom_xaxis_checkBox_stateChanged(int arg1);
 
     void on_zoomy_checkBox_stateChanged(int arg1);
+
+    void on_actionAbout_triggered();
 
 private:
     COM com;
