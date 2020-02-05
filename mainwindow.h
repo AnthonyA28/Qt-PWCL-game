@@ -85,6 +85,7 @@ private:
 
     int timerId;
     void timerEvent(QTimerEvent *event);
+    void closeEvent(QCloseEvent* event);
     PORT port;
     bool validConnection;
 

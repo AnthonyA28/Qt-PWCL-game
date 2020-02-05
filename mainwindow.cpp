@@ -40,6 +40,8 @@ MainWindow::MainWindow(QWidget *parent) :
     this->validConnection = false;
     // have the table resize with the window
     ui->outputTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);   // have the table resize with the window
+    ui->outputTable->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
+
     // disable any input into the the percent on textbox
     ui->percentOnInput->setEnabled(false);
 
@@ -122,6 +124,28 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 
+
+void MainWindow::closeEvent( QCloseEvent* event )
+{
+    if( port.L_isConnected() ) {
+        qDebug() << "The port is connected, so the program will not close rn\n";
+        QMessageBox msgBox;
+        msgBox.setText("There is an active connection.");
+        msgBox.setInformativeText("Are you sure you want to end this session?");
+        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+        msgBox.setDefaultButton(QMessageBox::No);
+        int ret = msgBox.exec();
+        if( ret == QMessageBox::Yes ){
+            qDebug() << "Closing the program\n" ;
+            event->accept();
+        } else {
+            event->ignore();
+        }
+    } else {
+        qDebug() << "Closing the program\n" ;
+        event->accept();
+    }
+}
 
 /**
 *   Called when the window is closed.
@@ -339,13 +363,20 @@ void MainWindow::timerEvent(QTimerEvent *event)
             ui->portComboBox->clear();
             for(int i = 0; i < portList.size(); i ++)
             {
-               ui->portComboBox->addItem(portList.at(i).portName());
+                QString str = portList.at(i).portName();
+                if(portList.at(i).description().contains("arduino", Qt::CaseInsensitive)) {
+                    str.append(" - " + portList.at(i).description());
+                }
+                ui->portComboBox->addItem(str);
             }
         }
     }
     else {
         killTimer(this->timerId); // no reason for the timer anymore
         ui->setButton->setText("Set");
+        if( port.L_isConnected() ) {
+            ui->portComboBox->setDisabled(1);
+        }
     }
 }
 
